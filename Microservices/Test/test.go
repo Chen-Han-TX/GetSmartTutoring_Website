@@ -37,9 +37,11 @@ func main() {
 	// -------New/Update Data--------
 
 	// create ref at path user_scores/:userId
+
 	ref := client.NewRef("user_scores/" + fmt.Sprint(1))
 
 	if err := ref.Set(context.TODO(), map[string]interface{}{"score": 40}); err != nil {
+
 		log.Fatal(err)
 	}
 
@@ -47,7 +49,9 @@ func main() {
 
 	// -------Retreiving------
 	// get database reference to user score
+
 	ref2 := client.NewRef("user_scores/1")
+
 
 	// read from user_scores using ref
 	var s UserScore
