@@ -6,6 +6,7 @@ import (
 	"log"
 
 	firebase "firebase.google.com/go/v4"
+	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 )
 
@@ -13,7 +14,7 @@ type UserScore struct {
 	Score int `json:"score"`
 }
 
-func main() {
+func RealTimeDatabaseExample() {
 	ctx := context.Background()
 
 	// configure database URL
@@ -52,7 +53,6 @@ func main() {
 
 	ref2 := client.NewRef("user_scores/1")
 
-
 	// read from user_scores using ref
 	var s UserScore
 	if err := ref2.Get(context.TODO(), &s); err != nil {
@@ -69,5 +69,86 @@ func main() {
 		}
 		fmt.Println("user's score deleted successfully:)")
 	*/
+}
+
+func FirestoreExample() {
+	// https://firebase.google.com/docs/firestore/quickstart#go
+
+	ctx := context.Background()
+
+	// Use a service account
+	sa := option.WithCredentialsFile("../eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
+	app, err := firebase.NewApp(ctx, nil, sa)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	client, err := app.Firestore(ctx)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer client.Close()
+
+	// ---- Add data ----
+
+	// Create new collection and a document
+	/*
+		_, _, err := client.Collection("users").Add(ctx, map[string]interface{}{
+			"first": "Ada",
+			"last":  "Lovelace",
+			"born":  1815,
+		})
+		if err != nil {
+			log.Fatalf("Failed adding alovelace: %v", err)
+		}
+	*/
+
+	// Add another document
+	_, _, err = client.Collection("User").Add(ctx, map[string]interface{}{
+		"Name":     "Yuxuan",
+		"Email":    "xuange@gmail.com",
+		"Password": "12345678",
+		"UserID":   1912,
+	})
+	if err != nil {
+		log.Fatalf("Failed adding aturing: %v", err)
+	}
+
+	// ----- Read Data -----
+	iter := client.Collection("User").Documents(ctx)
+	for {
+		doc, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			log.Fatalf("Failed to iterate: %v", err)
+		}
+		fmt.Println(doc.Data())
+	}
+
+}
+
+func AuthenticationExample() {
+	// Initialize default app
+	app, err := firebase.NewApp(context.Background(), nil)
+	if err != nil {
+		log.Fatalf("error initializing app: %v\n", err)
+	}
+
+	// Access auth service from the default app
+	client, err := app.Auth(context.Background())
+	if err != nil {
+		log.Fatalf("error getting Auth client: %v\n", err)
+	}
+	client.Close()
+
+}
+
+func main() {
+
+	//RealTimeDatabaseExample()
+	FirestoreExample()
+	AuthenticationExample()
 
 }
