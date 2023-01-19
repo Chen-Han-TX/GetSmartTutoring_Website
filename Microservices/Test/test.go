@@ -6,6 +6,7 @@ import (
 	"log"
 
 	firebase "firebase.google.com/go/v4"
+	"firebase.google.com/go/v4/auth"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 )
@@ -130,25 +131,49 @@ func FirestoreExample() {
 }
 
 func AuthenticationExample() {
+	// https://firebase.google.com/docs/auth/admin/manage-users
+
+	ctx := context.Background()
+
+	uid := "OpoyFtGk74TZ0ZQgK2tkYTlBCJ33"
+
 	// Initialize default app
-	app, err := firebase.NewApp(context.Background(), nil)
+	app, err := firebase.NewApp(ctx, nil)
 	if err != nil {
 		log.Fatalf("error initializing app: %v\n", err)
 	}
 
 	// Access auth service from the default app
-	client, err := app.Auth(context.Background())
+	client, err := app.Auth(ctx)
 	if err != nil {
 		log.Fatalf("error getting Auth client: %v\n", err)
 	}
-	client.Close()
+
+	// ---- Get User by uid -----
+
+	u, err := client.GetUser(ctx, uid)
+	if err != nil {
+		log.Fatalf("error getting user %s: %v\n", uid, err)
+	}
+	fmt.Println("Email:", u.Email)
+
+	// ---- Create a new user ----
+	params := (&auth.UserToCreate{}).
+		Email("benlow2@gmail.com").
+		Password("12345678")
+
+	newUser, err := client.CreateUser(ctx, params)
+	if err != nil {
+		log.Fatalf("error creating user: %v\n", err)
+	}
+	fmt.Println("New user with id: ", newUser.UID)
 
 }
 
 func main() {
 
 	//RealTimeDatabaseExample()
-	FirestoreExample()
+	//FirestoreExample()
 	AuthenticationExample()
 
 }
