@@ -45,38 +45,6 @@ type User struct {
 // Store a list of users for authenticating email
 type Users []User
 
-// Struct corresponds to the Passenger class in db
-type Passenger struct {
-	EmailAddress string `json:"email_address"`
-	Password     string `json:"password"`
-	FirstName    string `json:"first_name"`
-	LastName     string `json:"last_name"`
-	MobileNumber string `json:"mobile_number"`
-}
-
-// Struct corresponds to the Rider class in db
-type Rider struct {
-	EmailAddress string `json:"email_address"`
-	Password     string `json:"password"`
-	FirstName    string `json:"first_name"`
-	LastName     string `json:"last_name"`
-	MobileNumber string `json:"mobile_number"`
-	IcNumber     string `json:"ic_number"`
-	CarLicNumber string `json:"car_lic_number"`
-}
-
-// This struct is used as a response to the client
-type CommonUser struct {
-	UserID       string `json:"user_id"`
-	UserType     string `json:"user_type"`
-	EmailAddress string `json:"email_address"`
-	Password     string `json:"password"`
-	FirstName    string `json:"first_name"`
-	LastName     string `json:"last_name"`
-	MobileNumber string `json:"mobile_number"`
-	IcNumber     string `json:"ic_number"`
-	CarLicNumber string `json:"car_lic_number"`
-}
 
 type Message struct {
 	Status string `json:"status"`
@@ -85,8 +53,7 @@ type Message struct {
 
 // ====== GLOBAL VARIABLES ========
 var jwtKey = []byte("lhdrDMjhveyEVcvYFCgh1dBR2t7GM0YJ")        // A secure JWT Token for decoding, DO NOT SHARE
-var sqlConnectionString = "root:password@tcp(127.0.0.1:3306)/" // MySQL Connection string
-var database = "RideSharingPlatform"                           // MySQL common database for all three microservices
+
 
 // ======= DB Functions ==========
 // Check if email is exist in the users
@@ -197,34 +164,28 @@ func getRider(db *sql.DB, email_address string) (Rider, error) {
 // RETURN 417 -> INSERT failed
 func SignUp(w http.ResponseWriter, r *http.Request) {
 
-	// http://localhost:5050/api/auth/signup/(rider or passenger)
+	// http://localhost:5050/api/auth/signup
+	/*
+	user_type: ""
+
+	*/
 	params := mux.Vars(r)
 	user_type := params["user_type"]
 	// get the body of our POST request
-
-	// Connect to the db
-	db, err := sql.Open("mysql", sqlConnectionString+database)
-	if err != nil {
-		panic(err.Error())
-	}
-	defer db.Close()
 
 	// Check req methods
 	if r.Method == "OPTIONS" {
 		w.WriteHeader(http.StatusOK)
 		return
 	} else if r.Method == "POST" {
-
 		// Step 1: Check if passenger or rider
 		if user_type == "passenger" {
 
 			var passenger Passenger
-
 			err := json.NewDecoder(r.Body).Decode(&passenger)
 			if err != nil {
 				panic(err.Error())
 			}
-
 			// check if email exists in the User table
 			isExist := checkEmailIsExist(db, passenger.EmailAddress)
 			if isExist {
@@ -243,15 +204,12 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 				result, err := db.Exec(userQueryStatement)
 				if err != nil {
 					panic(err.Error())
-
 				}
 				// Get the auto-gen ID
 				id, err := result.LastInsertId()
 				if err != nil {
 					panic(err.Error())
-
 				}
-
 				// Upon getting the ID, now insert into Passenger table
 				queryStatement := fmt.Sprintf(`
 		INSERT INTO Passenger
@@ -608,12 +566,6 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	router := mux.NewRouter()
-
-	db, err := sql.Open("mysql", sqlConnectionString+database)
-	if err != nil {
-		panic(err.Error())
-	}
-	defer db.Close()
 
 	router.HandleFunc("/api/auth/signup/{user_type}", SignUp).Methods("POST", "OPTIONS")
 	router.HandleFunc("/api/auth/login", Login).Methods("POST", "OPTIONS")
