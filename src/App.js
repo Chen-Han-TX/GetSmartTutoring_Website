@@ -86,7 +86,7 @@ const App = () => {
               <nav className="navbar navbar-expand-lg navbar-light">
               <div className='container'>
                 <Link to={"/"} className="navbar-brand">
-                  GoRidey
+                  Get Smart Tutoring (GST)
                 </Link>
                 <div className='collapse navbar-collapse'>
                   <ul className="navbar-nav ml-auto" >

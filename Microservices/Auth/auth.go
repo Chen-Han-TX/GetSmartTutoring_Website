@@ -316,7 +316,8 @@ func Welcome(w http.ResponseWriter, r *http.Request) {
 	}
 	// Finally, return the welcome message to the user, along with their
 	// email given in the token
-	w.Write([]byte(fmt.Sprintf("Welcome %s! /n Your user type is: %s, your user id is : %s", claims.EmailAddress, claims.UserType, claims.UserID)))
+	w.Write([]byte(fmt.Sprintf("Welcome %s! /n Your user type is: %s, your user id is : %s", 
+	claims.EmailAddress, claims.UserType, claims.UserID)))
 
 }
 
