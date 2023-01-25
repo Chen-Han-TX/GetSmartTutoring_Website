@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 
 	firebase "firebase.google.com/go"
@@ -146,6 +147,8 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	var creds Credentials
 	//var user User
 
+	var UserID string
+
 	ctx := context.Background()
 	sa := option.WithCredentialsFile("../eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
 
@@ -161,6 +164,18 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("error getting Auth client: %v\n", err)
 	}
 
+	// ---Firestore----
+	app2, err := firebase.NewApp(ctx, nil, sa)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
+	client2, err := app2.Firestore(ctx)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	defer client2.Close()
+
 	// Check req methods
 	if r.Method == "OPTIONS" {
 		w.WriteHeader(http.StatusOK) // 200
@@ -175,20 +190,20 @@ func Login(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// verify user email and password
+		// GEt user id
 		u, err := client.GetUserByEmail(ctx, creds.Email)
 		if err != nil {
 			fmt.Printf("Error getting user: %v\n", err)
 			return
 		}
+		UserID = u.UID
+		
+
+		// Get user password and verify
+
+
+
 		fmt.Println()
-
-
-
-
-
-
-
 
 	} else {
 		w.WriteHeader(http.StatusNotFound)
