@@ -43,7 +43,7 @@ const login = (email_address, password) => {
         axiosConfig)
             .then((response) => {
                 console.log(response.data)
-            if (response.data.email_address) {
+            if (response.data.email) {
 
                 delete response.data.password
                 localStorage.setItem("user", JSON.stringify(response.data));
@@ -69,8 +69,8 @@ const getCurrentUser = () => {
   
 
 const AuthService = {
-    register_passenger,
-    register_rider,
+    register_student,
+    register_tutor,
     login,
     logout,
     getCurrentUser,

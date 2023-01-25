@@ -47,10 +47,6 @@ func main() {
 }
 
 // Add new trip record to database
-
-func createPayment(p Payment) {
-	//paymentResponse, err := c.CreateOrder()
-
 func createPayment(w http.ResponseWriter, r *http.Request) {
 	//paymentResponse, err := c.CreateOrder()
 	amount := paypal.Amount{

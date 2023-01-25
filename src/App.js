@@ -3,8 +3,11 @@ import './App.css';
 import { useState, useEffect } from 'react';
 import { Routes, Route, Link } from "react-router-dom";
 import Login from "./components/Login";
-import Tutor from "./components/Tutor/Tutor";
-import Student from "./components/Student/Student";
+import RegisterStudent from "./components/RegisterStudent";
+import RegisterTutor from "./components/RegisterTutor";
+import Tutor from "./components/Tutor";
+import Student from "./components/Student";
+
 import '../node_modules/bootstrap/dist/css/bootstrap.min.css'
 
 
@@ -20,14 +23,13 @@ const App = () => {
   useEffect(() => {
     const user = AuthService.getCurrentUser();
 
-    
     if (user) {
       setCurrentUser(user);
 
-      if (user.user_type === "student") {
+      if (user.user_type === "Student") {
         setShowStudent(true)
         setShowTutor(false)
-      } else if (user.user_type === "tutor") {
+      } else if (user.user_type === "Tutor") {
         setShowTutor(true)
         setShowStudent(false)  
       }
@@ -125,7 +127,7 @@ const App = () => {
                         <Link to={"/profile"} className="nav-link">
                           Profile
                         </Link>
-                      </li>
+                      </li> 
                       <li className="nav-item">
                         <Link to={"/"} className="nav-link" onClick={logOut}>
                           Logout
@@ -159,19 +161,16 @@ const App = () => {
               <Routes>
                 <Route exact path={"/"} element={<Student />} />
                 <Route path="/student" element={<Student />} />
-                <Route exact path="/profile" element={<Profile />} />
               </Routes>
               </div>
            </div>
           ) : (
-            showPassenger === false && showRider === true && (
+            showStudent === false && showTutor === true && (
               <div className="auth-wrapper">
                 <div>
                 <Routes>
-                  <Route exact path={"/"} element={<Rider />} />
-                  <Route path="/rider" element={<Rider  />} />
-                  <Route exact path="/profile" element={<Profile />} />
-                  <Route exact path="/rides" element={<RideHistory />} />
+                  <Route exact path={"/"} element={<Tutor />} />
+                  <Route path="/tutor" element={<Tutor  />} />
                 </Routes>
                 </div>
               </div>
