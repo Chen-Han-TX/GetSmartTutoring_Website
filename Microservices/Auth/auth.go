@@ -6,7 +6,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 
 	firebase "firebase.google.com/go"
@@ -20,8 +19,8 @@ import (
 // ==== STRUCTs ========
 // struct for user login credentials
 type Credentials struct {
-	EmailAddress string `json:"email_address"`
-	Password     string `json:"password"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 // Struct for User object
@@ -50,7 +49,7 @@ type Claims struct {
 // ========= HANDLER FUNCTIONS ==========
 
 // RETURN 200 -> Registered
-// RETURN 400 -> Duplicated account (email)
+// RETURN 406 -> Duplicated account (email)
 func SignUp(w http.ResponseWriter, r *http.Request) {
 
 	// POST http://localhost:5050/api/auth/signup/student
@@ -65,30 +64,30 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 	sa := option.WithCredentialsFile("../eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
 
 	// ---Authentication--
-	// Initialize default app
 	app, err := firebase.NewApp(ctx, nil, sa)
 	if err != nil {
-		log.Fatalf("error initializing app: %v\n", err)
+		fmt.Printf("error initializing app: %v\n", err)
 	}
 
 	// Access auth service from the default app
 	client, err := app.Auth(ctx)
 	if err != nil {
-		log.Fatalf("error getting Auth client: %v\n", err)
+		fmt.Printf("error getting Auth client: %v\n", err)
 	}
 
 	// ----Firestore----
 	app2, err := firebase.NewApp(ctx, nil, sa)
 	if err != nil {
-		log.Fatalln(err)
+		fmt.Println(err.Error())
 	}
 
 	client2, err := app2.Firestore(ctx)
 	if err != nil {
-		log.Fatalln(err)
+		fmt.Println(err.Error())
 	}
 	defer client2.Close()
 
+	// new user
 	var user User
 
 	// Check req methods
@@ -132,7 +131,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 		success, err := client2.Collection("User").Doc(user.UserID).Set(ctx, user)
 		if err != nil {
 			// Handle any errors in an appropriate way, such as returning them.
-			log.Printf("An error has occurred: %s", err)
+			fmt.Printf("An error has occurred: %s", err)
 		}
 		fmt.Println(success)
 		json.NewEncoder(w).Encode(user)
@@ -141,6 +140,61 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound) //404
 		return
 	}
+}
+
+func Login(w http.ResponseWriter, r *http.Request) {
+	var creds Credentials
+	//var user User
+
+	ctx := context.Background()
+	sa := option.WithCredentialsFile("../eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
+
+	// ---Authentication--
+	app, err := firebase.NewApp(ctx, nil, sa)
+	if err != nil {
+		fmt.Printf("error initializing app: %v\n", err)
+	}
+
+	// Access auth service from the default app
+	client, err := app.Auth(ctx)
+	if err != nil {
+		fmt.Printf("error getting Auth client: %v\n", err)
+	}
+
+	// Check req methods
+	if r.Method == "OPTIONS" {
+		w.WriteHeader(http.StatusOK) // 200
+		return
+	} else if r.Method == "POST" {
+		// Receive user login information in JSON
+		// and decode into User
+		err := json.NewDecoder(r.Body).Decode(&creds)
+		if err != nil {
+			// If the structure of the body is wrong, return an HTTP error
+			w.WriteHeader(http.StatusBadRequest) //400
+			return
+		}
+
+		// verify user email and password
+		u, err := client.GetUserByEmail(ctx, creds.Email)
+		if err != nil {
+			fmt.Printf("Error getting user: %v\n", err)
+			return
+		}
+		fmt.Println()
+
+
+
+
+
+
+
+
+	} else {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
 }
 
 /*
@@ -400,7 +454,7 @@ func main() {
 	router := mux.NewRouter()
 
 	router.HandleFunc("/api/auth/signup/{user_type}", SignUp).Methods("POST", "OPTIONS")
-	//router.HandleFunc("/api/auth/login", Login).Methods("POST", "OPTIONS")
+	router.HandleFunc("/api/auth/login", Login).Methods("POST", "OPTIONS")
 	//router.HandleFunc("/api/auth/welcome", Welcome).Methods("GET")
 	//router.HandleFunc("/api/auth/refresh", Refresh)
 	//router.HandleFunc("/api/auth/logout", Logout)
