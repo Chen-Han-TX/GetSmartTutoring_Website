@@ -1,32 +1,42 @@
-// This microservice aims to provide JWT authentication for Login, Signup and Logout functions.
-// The JWT Token generated upon Logging in will be stored in the Cookie and send over with the response.
-
 package main
 
 import (
 	//"encoding/json"
 
-	"database/sql"
+	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
-	"strconv"
-	"time"
+	"log"
 
+	firebase "firebase.google.com/go"
+	"firebase.google.com/go/auth"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/gorilla/mux"
+	"google.golang.org/api/option"
 )
 
 // ==== STRUCTs ========
-// struct for incoming Login req
+// struct for user login credentials
 type Credentials struct {
-	EmailAddress string `json:"email_address"`
-	Password     string `json:"password"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+// Struct for User object
+type User struct {
+	UserID         string              `json:"user_id" firestore:"UserID"`
+	UserType       string              `json:"user_type" firestore:"UserType"`
+	Name           string              `json:"name" firestore:"Name"`
+	Email          string              `json:"email" firestore:"Email"`
+	Password       string              `json:"password" firestore:"Password"`
+	AreaOfInterest map[string][]string `json:"area_of_interest" firestore:"AreaOfInterest"`
+	CertOfEvidence string              `json:"cert_of_evidence" firestore:"CertOfEvidence"`
 }
 
 // Create a struct that can be encoded into a JWT
+// Please ONlY Store insensitive data
 type Claims struct {
 	EmailAddress string `json:"email_address"`
 	UserType     string `json:"user_type"`
@@ -34,180 +44,52 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-// Struct cooresponds to the User class in db
-type User struct {
-	UserID       int    `json:"user_id"`
-	UserType     string `json:"user_type"`
-	EmailAddress string `json:"email_address"`
-	Password     string `json:"password"`
-}
-
-// Store a list of users for authenticating email
-type Users []User
-
-// Struct corresponds to the Passenger class in db
-type Passenger struct {
-	EmailAddress string `json:"email_address"`
-	Password     string `json:"password"`
-	FirstName    string `json:"first_name"`
-	LastName     string `json:"last_name"`
-	MobileNumber string `json:"mobile_number"`
-}
-
-// Struct corresponds to the Rider class in db
-type Rider struct {
-	EmailAddress string `json:"email_address"`
-	Password     string `json:"password"`
-	FirstName    string `json:"first_name"`
-	LastName     string `json:"last_name"`
-	MobileNumber string `json:"mobile_number"`
-	IcNumber     string `json:"ic_number"`
-	CarLicNumber string `json:"car_lic_number"`
-}
-
-// This struct is used as a response to the client
-type CommonUser struct {
-	UserID       string `json:"user_id"`
-	UserType     string `json:"user_type"`
-	EmailAddress string `json:"email_address"`
-	Password     string `json:"password"`
-	FirstName    string `json:"first_name"`
-	LastName     string `json:"last_name"`
-	MobileNumber string `json:"mobile_number"`
-	IcNumber     string `json:"ic_number"`
-	CarLicNumber string `json:"car_lic_number"`
-}
-
-type Message struct {
-	Status string `json:"status"`
-	Info   string `json:"info"`
-}
-
 // ====== GLOBAL VARIABLES ========
-var jwtKey = []byte("lhdrDMjhveyEVcvYFCgh1dBR2t7GM0YJ")        // A secure JWT Token for decoding, DO NOT SHARE
-var sqlConnectionString = "root:password@tcp(127.0.0.1:3306)/" // MySQL Connection string
-var database = "RideSharingPlatform"                           // MySQL common database for all three microservices
-
-// ======= DB Functions ==========
-// Check if email is exist in the users
-func checkEmailIsExist(db *sql.DB, new_email string) bool {
-	query := fmt.Sprintf(`SELECT email_address FROM User WHERE email_address = '%s'`, new_email)
-	results, err := db.Query(query)
-	if err != nil {
-		panic(err.Error())
-	}
-	var email string
-	for results.Next() {
-		err = results.Scan(&email)
-		if err != nil {
-			panic(err.Error())
-		}
-		if email == new_email {
-			return true
-		}
-	}
-	return false
-}
-
-func verifyPassword(db *sql.DB, email string, password string) bool {
-	query := fmt.Sprintf(`SELECT password FROM User WHERE email_address = '%s'`, email)
-	results, err := db.Query(query)
-	if err != nil {
-		panic(err.Error())
-	}
-	var correct_pw string
-	for results.Next() {
-		err = results.Scan(&correct_pw)
-		if err != nil {
-			panic(err.Error())
-		}
-		if password == correct_pw {
-			return true
-		}
-	}
-	return false
-}
-
-func getUserFromDB(db *sql.DB, email_address string) (User, error) {
-	query := fmt.Sprintf(`SELECT * FROM User WHERE email_address = '%s'`, email_address)
-	var user User
-	results, err := db.Query(query)
-	if err != nil {
-		return user, err
-	}
-	for results.Next() {
-		err = results.Scan(&user.UserID, &user.UserType, &user.EmailAddress, &user.Password)
-		if err != nil {
-			return user, err
-		}
-	}
-	return user, err
-}
-
-// Get the Passenger from the db using email
-func getPassenger(db *sql.DB, email_address string) (Passenger, error) {
-
-	var passenger_found Passenger
-	select_query := fmt.Sprintf(`
-	SELECT u.email_address, u.password, p.first_name, p.last_name, p.mobile_number FROM User u
-	INNER JOIN Passenger p
-	ON u.user_id = p.passenger_id
-	WHERE email_address = '%s'`, email_address)
-
-	results, err := db.Query(select_query)
-	if err != nil {
-		return passenger_found, err
-	}
-	for results.Next() {
-		err = results.Scan(&passenger_found.EmailAddress, &passenger_found.Password, &passenger_found.FirstName, &passenger_found.LastName, &passenger_found.MobileNumber)
-		if err != nil {
-			return passenger_found, err
-		}
-	}
-	return passenger_found, nil
-}
-
-// Get the Passenger from the db using email
-func getRider(db *sql.DB, email_address string) (Rider, error) {
-
-	var rider_found Rider
-	select_query := fmt.Sprintf(`
-	SELECT u.email_address, u.password, r.first_name, r.last_name, r.mobile_number, r.ic_number, r.car_lic_number FROM User u
-	INNER JOIN Rider r
-	ON u.user_id = r.rider_id
-	WHERE email_address = '%s'`, email_address)
-
-	results, err := db.Query(select_query)
-	if err != nil {
-		return rider_found, err
-	}
-	for results.Next() {
-		err = results.Scan(&rider_found.EmailAddress, &rider_found.Password, &rider_found.FirstName, &rider_found.LastName, &rider_found.MobileNumber, &rider_found.IcNumber, &rider_found.CarLicNumber)
-		if err != nil {
-			return rider_found, err
-		}
-	}
-	return rider_found, nil
-}
+//var jwtKey = []byte("lhdrDMjhveyEVcvYFCgh1dBR2t7GM0YJ") // A secure JWT Token for decoding, DO NOT SHARE
 
 // ========= HANDLER FUNCTIONS ==========
 
 // RETURN 200 -> Registered
-// RETURN 409 -> Duplicated account (email)
-// RETURN 417 -> INSERT failed
+// RETURN 406 -> Duplicated account (email)
 func SignUp(w http.ResponseWriter, r *http.Request) {
 
-	// http://localhost:5050/api/auth/signup/(rider or passenger)
+	// POST http://localhost:5050/api/auth/signup/student
+	// {"name": "xyz", "email": "..", "password", "area of interest": {"olevel":"..."...}, "certificate":""}
+	// POST http://localhost:5050/api/auth/signup/tutor
+	//{"name": "xyz", "email": "..", "password", "area of interest": {"olevel":"..."...}, "certificate":"..."}
+
 	params := mux.Vars(r)
 	user_type := params["user_type"]
-	// get the body of our POST request
 
-	// Connect to the db
-	db, err := sql.Open("mysql", sqlConnectionString+database)
+	ctx := context.Background()
+	sa := option.WithCredentialsFile("../eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
+
+	// ---Authentication--
+	app, err := firebase.NewApp(ctx, nil, sa)
 	if err != nil {
-		panic(err.Error())
+		fmt.Printf("error initializing app: %v\n", err)
 	}
-	defer db.Close()
+
+	// Access auth service from the default app
+	client, err := app.Auth(ctx)
+	if err != nil {
+		fmt.Printf("error getting Auth client: %v\n", err)
+	}
+
+	// ----Firestore----
+	app2, err := firebase.NewApp(ctx, nil, sa)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
+	client2, err := app2.Firestore(ctx)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	defer client2.Close()
+
+	// new user
+	var user User
 
 	// Check req methods
 	if r.Method == "OPTIONS" {
@@ -215,139 +97,45 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	} else if r.Method == "POST" {
 
-		// Step 1: Check if passenger or rider
-		if user_type == "passenger" {
+		err := json.NewDecoder(r.Body).Decode(&user)
+		if err != nil {
+			panic(err.Error())
+		}
 
-			var passenger Passenger
-
-			err := json.NewDecoder(r.Body).Decode(&passenger)
-			if err != nil {
-				panic(err.Error())
-			}
-
-			// check if email exists in the User table
-			isExist := checkEmailIsExist(db, passenger.EmailAddress)
-			if isExist {
-				w.WriteHeader(http.StatusConflict) //409
-				json.NewEncoder(w).Encode("Duplicated account: " + passenger.EmailAddress)
-				return
-			} else if passenger.EmailAddress == "" || passenger.FirstName == "" || passenger.LastName == "" || passenger.MobileNumber == "" || passenger.Password == "" {
-				w.WriteHeader(http.StatusNotAcceptable) //406
-				json.NewEncoder(w).Encode("Found empty content")
-				return
-			} else {
-				// Insert into User table
-				userQueryStatement := fmt.Sprintf(`
-		INSERT INTO User(user_type, email_address, password)
-		VALUES ('%s', '%s', '%s')`, user_type, passenger.EmailAddress, passenger.Password)
-				result, err := db.Exec(userQueryStatement)
-				if err != nil {
-					panic(err.Error())
-
-				}
-				// Get the auto-gen ID
-				id, err := result.LastInsertId()
-				if err != nil {
-					panic(err.Error())
-
-				}
-
-				// Upon getting the ID, now insert into Passenger table
-				queryStatement := fmt.Sprintf(`
-		INSERT INTO Passenger
-		VALUES (%d, '%s', '%s', '%s')`,
-					id,
-					passenger.FirstName,
-					passenger.LastName,
-					passenger.MobileNumber)
-
-				result2, err := db.Exec(queryStatement)
-				if err != nil {
-					panic(err.Error())
-				}
-				rows_affected, err := result2.RowsAffected()
-				if err != nil {
-					panic(err.Error())
-				}
-				if rows_affected == 1 {
-					w.WriteHeader(http.StatusAccepted) //202
-					json.NewEncoder(w).Encode("Passenger Insert Successfully")
-					return
-				} else {
-					w.WriteHeader(http.StatusExpectationFailed) //417
-					json.NewEncoder(w).Encode("Error with inserting")
-					return
-				}
-			}
-
-		} else if user_type == "rider" {
-			var rider Rider
-
-			err := json.NewDecoder(r.Body).Decode(&rider)
-			if err != nil {
-				panic(err.Error())
-			}
-
-			// check if email exists in the User table
-			isExist := checkEmailIsExist(db, rider.EmailAddress)
-			if isExist {
-				w.WriteHeader(http.StatusConflict) //409
-				json.NewEncoder(w).Encode("Duplicated account: " + rider.EmailAddress)
-				return
-			} else if rider.EmailAddress == "" || rider.FirstName == "" || rider.LastName == "" || rider.MobileNumber == "" || rider.Password == "" || rider.IcNumber == "" || rider.CarLicNumber == "" {
-				w.WriteHeader(http.StatusNotAcceptable) //406
-				json.NewEncoder(w).Encode("Found empty content")
-				return
-			} else {
-				// Insert into User table
-				userQueryStatement := fmt.Sprintf(`
-		INSERT INTO User(user_type, email_address, password)
-		VALUES ('%s', '%s', '%s')`, user_type, rider.EmailAddress, rider.Password)
-				result, err := db.Exec(userQueryStatement)
-				if err != nil {
-					panic(err.Error())
-
-				}
-				id, err := result.LastInsertId()
-				if err != nil {
-					panic(err.Error())
-
-				}
-
-				// Upon getting the ID, now insert into Rider table
-				queryStatement := fmt.Sprintf(`
-		INSERT INTO Rider
-		VALUES (%d, '%s', '%s', '%s', '%s', '%s')`,
-					id,
-					rider.FirstName,
-					rider.LastName,
-					rider.MobileNumber,
-					rider.IcNumber,
-					rider.CarLicNumber)
-
-				results, err := db.Exec(queryStatement)
-				if err != nil {
-					panic(err.Error())
-				}
-				rows_affected, err := results.RowsAffected()
-				if err != nil {
-					panic(err.Error())
-				}
-				if rows_affected == 1 {
-					w.WriteHeader(http.StatusAccepted) //202
-					json.NewEncoder(w).Encode("Rider Insert Successfully")
-					return
-				} else {
-					w.WriteHeader(http.StatusExpectationFailed) //417
-					json.NewEncoder(w).Encode("Error with inserting")
-					return
-				}
-			}
-
-		} else { // If the query param is not "Passenger" nor "Rider"
+		// Step 1: Check if student or tutor
+		if user_type == "student" {
+			user.UserType = "Student"
+		} else if user_type == "tutor" {
+			user.UserType = "Tutor"
+		} else {
 			w.WriteHeader(http.StatusNotFound) // 404
 			return
 		}
+
+		// ---- Create a new Auth user ----
+		params := (&auth.UserToCreate{}).
+			Email(user.Email).
+			Password(user.Password)
+
+		newUser, err := client.CreateUser(ctx, params)
+		if err != nil {
+			w.WriteHeader(http.StatusNotAcceptable)
+			fmt.Println(err.Error())
+			json.NewEncoder(w).Encode(err.Error())
+			return
+		}
+		fmt.Println("New user with id: ", newUser.UID)
+		user.UserID = newUser.UID
+
+		// ---- Create a new Firebase record
+		// Set UserID as the document name
+		success, err := client2.Collection("User").Doc(user.UserID).Set(ctx, user)
+		if err != nil {
+			// Handle any errors in an appropriate way, such as returning them.
+			fmt.Printf("An error has occurred: %s", err)
+		}
+		fmt.Println(success)
+		json.NewEncoder(w).Encode(user)
 
 	} else { // Other req methods
 		w.WriteHeader(http.StatusNotFound) //404
@@ -355,6 +143,77 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func Login(w http.ResponseWriter, r *http.Request) {
+	var creds Credentials
+	//var user User
+
+	var UserID string
+
+	ctx := context.Background()
+	sa := option.WithCredentialsFile("../eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
+
+	// ---Authentication--
+	app, err := firebase.NewApp(ctx, nil, sa)
+	if err != nil {
+		fmt.Printf("error initializing app: %v\n", err)
+	}
+
+	// Access auth service from the default app
+	client, err := app.Auth(ctx)
+	if err != nil {
+		fmt.Printf("error getting Auth client: %v\n", err)
+	}
+
+	app2, err := firebase.NewApp(ctx, nil, sa)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
+	client2, err := app2.Firestore(ctx)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	defer client2.Close()
+
+	// Check req methods
+	if r.Method == "OPTIONS" {
+		w.WriteHeader(http.StatusOK) // 200
+		return
+	} else if r.Method == "POST" {
+		// Receive user login information in JSON
+		// and decode into User
+		err := json.NewDecoder(r.Body).Decode(&creds)
+		if err != nil {
+			// If the structure of the body is wrong, return an HTTP error
+			w.WriteHeader(http.StatusBadRequest) //400
+			return
+		}
+
+		// verify user email and password
+
+		u, err := client.GetUserByEmail(ctx, creds.Email)
+		if err != nil {
+			fmt.Printf("Error getting user: %v\n", err)
+			return
+		}
+
+		UserID = u.UID
+		
+
+		// Get user password and verify
+
+
+		fmt.Println()
+
+
+	} else {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+}
+
+/*
 // RETURN CommonUser with JWT Token embeded in a Cookie
 func Login(w http.ResponseWriter, r *http.Request) {
 	var creds Credentials
@@ -605,21 +464,16 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 	})
 }
+*/
 
 func main() {
 	router := mux.NewRouter()
 
-	db, err := sql.Open("mysql", sqlConnectionString+database)
-	if err != nil {
-		panic(err.Error())
-	}
-	defer db.Close()
-
 	router.HandleFunc("/api/auth/signup/{user_type}", SignUp).Methods("POST", "OPTIONS")
 	router.HandleFunc("/api/auth/login", Login).Methods("POST", "OPTIONS")
-	router.HandleFunc("/api/auth/welcome", Welcome).Methods("GET")
-	router.HandleFunc("/api/auth/refresh", Refresh)
-	router.HandleFunc("/api/auth/logout", Logout)
+	//router.HandleFunc("/api/auth/welcome", Welcome).Methods("GET")
+	//router.HandleFunc("/api/auth/refresh", Refresh)
+	//router.HandleFunc("/api/auth/logout", Logout)
 
 	fmt.Println("Listening at port 5050")
 	log.Fatal(http.ListenAndServe(":5050", router))

@@ -1,10 +1,13 @@
-module test.go
+module subject.go
 
 go 1.19
 
 require (
 	firebase.google.com/go/v4 v4.10.0
-	google.golang.org/api v0.107.0
+	github.com/go-sql-driver/mysql v1.7.0
+	github.com/golang-jwt/jwt/v4 v4.4.3
+	github.com/gorilla/mux v1.8.0
+	google.golang.org/api v0.108.0
 )
 
 require (
@@ -15,8 +18,8 @@ require (
 	cloud.google.com/go/iam v0.8.0 // indirect
 	cloud.google.com/go/longrunning v0.3.0 // indirect
 	cloud.google.com/go/storage v1.27.0 // indirect
+	firebase.google.com/go v3.13.0+incompatible // direct
 	github.com/MicahParks/keyfunc v1.5.1 // indirect
-	github.com/golang-jwt/jwt/v4 v4.4.2 // indirect
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
