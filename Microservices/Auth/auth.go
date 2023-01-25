@@ -291,6 +291,11 @@ func Login(w http.ResponseWriter, r *http.Request) {
 			Path:     "/",
 			HttpOnly: true,
 		})
+
+		// Remove the password
+		user.Password = ""
+
+		// Return user object
 		json.NewEncoder(w).Encode(user)
 		return
 
