@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"log"
 
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
