@@ -47,8 +47,24 @@ func main() {
 }
 
 // Add new trip record to database
+
 func createPayment(p Payment) {
 	//paymentResponse, err := c.CreateOrder()
+
+func createPayment(w http.ResponseWriter, r *http.Request) {
+	//paymentResponse, err := c.CreateOrder()
+	amount := paypal.Amount{
+		Total:    "",
+		Currency: "SGD",
+	}
+	//URL to redirect to after PayPal has complete the online payment
+	redirectURI := "http://example.com/redirect-uri"
+	//URL to redirect to if user clicks cancel
+	cancelURI := "http://example.com/cancel-uri"
+	description := "Description for this payment"
+	paymentResult, err := c.CreateDirectPaypalPayment(amount, redirectURI, cancelURI, description)
+
+
 }
 
 func makePayment(w http.ResponseWriter, r *http.Request) {
