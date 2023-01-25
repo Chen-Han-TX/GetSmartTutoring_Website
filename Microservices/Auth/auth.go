@@ -6,7 +6,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 
 	firebase "firebase.google.com/go"
@@ -164,7 +163,6 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("error getting Auth client: %v\n", err)
 	}
 
-	// ---Firestore----
 	app2, err := firebase.NewApp(ctx, nil, sa)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -190,20 +188,22 @@ func Login(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// GEt user id
+		// verify user email and password
+
 		u, err := client.GetUserByEmail(ctx, creds.Email)
 		if err != nil {
 			fmt.Printf("Error getting user: %v\n", err)
 			return
 		}
+
 		UserID = u.UID
 		
 
 		// Get user password and verify
 
 
-
 		fmt.Println()
+
 
 	} else {
 		w.WriteHeader(http.StatusNotFound)
