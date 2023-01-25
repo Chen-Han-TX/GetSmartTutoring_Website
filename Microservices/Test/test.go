@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 
 	firebase "firebase.google.com/go/v4"
 	"firebase.google.com/go/v4/auth"
@@ -28,12 +27,12 @@ func RealTimeDatabaseExample() {
 
 	app, err := firebase.NewApp(ctx, conf, opt)
 	if err != nil {
-		log.Fatalln("error in initializing firebase app: ", err)
+		fmt.Println("error in initializing firebase app: ", err)
 	}
 
 	client, err := app.Database(ctx)
 	if err != nil {
-		log.Fatalln("error in creating firebase DB client: ", err)
+		fmt.Println("error in creating firebase DB client: ", err)
 	}
 
 	// -------New/Update Data--------
@@ -44,7 +43,7 @@ func RealTimeDatabaseExample() {
 
 	if err := ref.Set(context.TODO(), map[string]interface{}{"score": 40}); err != nil {
 
-		log.Fatal(err)
+		fmt.Println(err.Error())
 	}
 
 	fmt.Println("score added/updated successfully!")
@@ -57,7 +56,7 @@ func RealTimeDatabaseExample() {
 	// read from user_scores using ref
 	var s UserScore
 	if err := ref2.Get(context.TODO(), &s); err != nil {
-		log.Fatalln("error in reading from firebase DB: ", err)
+		fmt.Println("error in reading from firebase DB: ", err)
 	}
 	fmt.Println("retrieved user's score is: ", s.Score)
 
@@ -66,7 +65,7 @@ func RealTimeDatabaseExample() {
 		ref3 := client.NewRef("user_scores/1")
 
 		if err := ref3.Delete(context.TODO()); err != nil {
-			log.Fatalln("error in deleting ref: ", err)
+			fmt.Println("error in deleting ref: ", err)
 		}
 		fmt.Println("user's score deleted successfully:)")
 	*/
@@ -81,12 +80,12 @@ func FirestoreExample() {
 	sa := option.WithCredentialsFile("../eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
 	app, err := firebase.NewApp(ctx, nil, sa)
 	if err != nil {
-		log.Fatalln(err)
+		fmt.Println(err.Error())
 	}
 
 	client, err := app.Firestore(ctx)
 	if err != nil {
-		log.Fatalln(err)
+		fmt.Println(err.Error())
 	}
 	defer client.Close()
 
@@ -100,7 +99,7 @@ func FirestoreExample() {
 			"born":  1815,
 		})
 		if err != nil {
-			log.Fatalf("Failed adding alovelace: %v", err)
+			fmt.Printf("Failed adding alovelace: %v", err)
 		}
 	*/
 
@@ -112,7 +111,7 @@ func FirestoreExample() {
 		"UserID":   1912,
 	})
 	if err != nil {
-		log.Fatalf("Failed adding aturing: %v", err)
+		fmt.Printf("Failed adding aturing: %v", err)
 	}
 
 	// ----- Read Data -----
@@ -123,7 +122,7 @@ func FirestoreExample() {
 			break
 		}
 		if err != nil {
-			log.Fatalf("Failed to iterate: %v", err)
+			fmt.Printf("Failed to iterate: %v", err)
 		}
 		fmt.Println(doc.Data())
 	}
@@ -140,20 +139,20 @@ func AuthenticationExample() {
 	// Initialize default app
 	app, err := firebase.NewApp(ctx, nil)
 	if err != nil {
-		log.Fatalf("error initializing app: %v\n", err)
+		fmt.Printf("error initializing app: %v\n", err)
 	}
 
 	// Access auth service from the default app
 	client, err := app.Auth(ctx)
 	if err != nil {
-		log.Fatalf("error getting Auth client: %v\n", err)
+		fmt.Printf("error getting Auth client: %v\n", err)
 	}
 
 	// ---- Get User by uid -----
 
 	u, err := client.GetUser(ctx, uid)
 	if err != nil {
-		log.Fatalf("error getting user %s: %v\n", uid, err)
+		fmt.Printf("error getting user %s: %v\n", uid, err)
 	}
 	fmt.Println("Email:", u.Email)
 
@@ -164,7 +163,7 @@ func AuthenticationExample() {
 
 	newUser, err := client.CreateUser(ctx, params)
 	if err != nil {
-		log.Fatalf("error creating user: %v\n", err)
+		fmt.Printf("error creating user: %v\n", err)
 	}
 	fmt.Println("New user with id: ", newUser.UID)
 
