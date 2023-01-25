@@ -47,6 +47,10 @@ func main() {
 }
 
 // Add new trip record to database
+
+func createPayment(p Payment) {
+	//paymentResponse, err := c.CreateOrder()
+
 func createPayment(w http.ResponseWriter, r *http.Request) {
 	//paymentResponse, err := c.CreateOrder()
 	amount := paypal.Amount{
@@ -59,6 +63,7 @@ func createPayment(w http.ResponseWriter, r *http.Request) {
 	cancelURI := "http://example.com/cancel-uri"
 	description := "Description for this payment"
 	paymentResult, err := c.CreateDirectPaypalPayment(amount, redirectURI, cancelURI, description)
+
 
 }
 
