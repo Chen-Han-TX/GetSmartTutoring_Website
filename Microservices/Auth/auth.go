@@ -6,8 +6,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"log"
+	"net/http"
 
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
@@ -196,15 +196,13 @@ func Login(w http.ResponseWriter, r *http.Request) {
 			fmt.Printf("Error getting user: %v\n", err)
 			return
 		}
+		
 
 		UserID = u.UID
-		
 
 		// Get user password and verify
 
-
 		fmt.Println()
-
 
 	} else {
 		w.WriteHeader(http.StatusNotFound)
