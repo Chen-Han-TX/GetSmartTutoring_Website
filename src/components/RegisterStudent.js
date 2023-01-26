@@ -2,6 +2,7 @@ import React, { useState, useRef } from "react";
 import Form from "react-validation/build/form";
 import Input from "react-validation/build/input";
 import CheckButton from "react-validation/build/button";
+import DropdownMultiselect from "react-multiselect-dropdown-bootstrap";
 import { isEmail } from "validator";
 
 import AuthService from "../services/auth.service";
@@ -27,19 +28,6 @@ const validEmail = (value) => {
   }
 };
 
-function containsOnlyNumbers(str) {
-  return /^\d+$/.test(str);
-}
-
-const validMobileNumber = (value) => {
-  if (value.length !== 8 || !containsOnlyNumbers(value)) {
-    return (
-      <div className="invalid-feedback d-block">
-        Please enter a valid 8 digit phone number
-      </div>
-    );
-  }
-};
 
 const vpassword = (value) => {
   if (value.length < 8 || value.length > 40) {
@@ -56,12 +44,11 @@ const RegisterStudent = () => {
   const form = useRef();
   const checkBtn = useRef();
 
-
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [first_name, setFirstName] = useState("");
-  const [last_name, setLastName] = useState("");
-  const [mobile_number, setMobileNumber] = useState("");
   const [password, setPassword] = useState("");
+  const [school, setSchool] = useState("");
+
 
   const [successful, setSuccessful] = useState(false);
   const [message, setMessage] = useState("");
@@ -73,25 +60,22 @@ const RegisterStudent = () => {
     setEmail(email);
   };
 
-  const onChangeFirstName = (e) => {
-    const first_name = e.target.value;
-    setFirstName(first_name);
+  const onChangeName = (e) => {
+    const name = e.target.value;
+    setName(name);
   };
 
-  const onChangeLastName = (e) => {
-    const last_name = e.target.value;
-    setLastName(last_name);
-  };
-
-  const onChangeMobileNumber = (e) => {
-    const mobile_number = e.target.value;
-    setMobileNumber(mobile_number);
-  };
 
   const onChangePassword = (e) => {
     const password = e.target.value;
     setPassword(password);
   };
+
+  const onChangeSchool = (e) => {
+    const school = e.target.value;
+    setSchool(school);
+  };
+
 
   const handleRegister = (e) => {
     e.preventDefault();
@@ -132,14 +116,34 @@ const RegisterStudent = () => {
     }
   };
 
-
+  const optionsArray = [
+    { key: "au", label: "Australia" },
+    { key: "ca", label: "Canada" },
+    { key: "us", label: "USA" },
+    { key: "pl", label: "Poland" },
+    { key: "es", label: "Spain" },
+    { key: "fr", label: "France" },
+  ];
 
   return (
         <Form onSubmit={handleRegister} ref={form}>
-          <h3>Register as Passenger</h3>
+          <h3>Register Student</h3>
           {!successful && (
-            
+
             <div>
+
+              <div className="mb-3">
+                <label htmlFor="name">Name</label>
+                <Input
+                  type="text"
+                  className="form-control"
+                  name="name"
+                  value={name}
+                  onChange={onChangeName}
+                  validations={[required]}
+                />
+              </div>
+
               <div className="mb-3">
                 <label htmlFor="email">Email</label>
                 <Input
@@ -153,42 +157,6 @@ const RegisterStudent = () => {
               </div>
 
               <div className="mb-3">
-                <label htmlFor="first_name">First name</label>
-                <Input
-                  type="text"
-                  className="form-control"
-                  name="first_name"
-                  value={first_name}
-                  onChange={onChangeFirstName}
-                  validations={[required]}
-                />
-              </div>
-
-              <div className="mb-3">
-                <label htmlFor="last_name">Last name</label>
-                <Input
-                  type="text"
-                  className="form-control"
-                  name="last_name"
-                  value={last_name}
-                  onChange={onChangeLastName}
-                  validations={[required]}
-                />
-              </div>
-
-              <div className="mb-3">
-                <label htmlFor="mobile_number">Mobile number</label>
-                <Input
-                  type="text"
-                  className="form-control"
-                  name="mobile_number"
-                  value={mobile_number}
-                  onChange={onChangeMobileNumber}
-                  validations={[required, validMobileNumber]}
-                />
-              </div>
-
-              <div className="mb-3">
                 <label htmlFor="password">Password</label>
                 <Input
                   type="password"
@@ -198,6 +166,25 @@ const RegisterStudent = () => {
                   onChange={onChangePassword}
                   validations={[required, vpassword]}
                 />
+              </div>
+
+              <div className="mb-3">
+                <label htmlFor="school">School</label>
+                <Input
+                  type="text"
+                  className="form-control"
+                  name="school"
+                  value={school}
+                  onChange={onChangeSchool}
+                  validations={[required]}
+                />
+              </div>
+
+              
+
+              <div className="mb-3">
+                  <label htmlFor="options">Area of Interests</label>
+                  <DropdownMultiselect options={optionsArray} name="countries" />
               </div>
 
               <div className="d-grid">
