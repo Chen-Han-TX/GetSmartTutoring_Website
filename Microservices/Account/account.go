@@ -18,12 +18,12 @@ import (
 // ==== STRUCTs ========
 // Struct for User object
 type User struct {
-	UserID         string              `json:"user_id" firestore:"UserID"`
-	UserType       string              `json:"user_type" firestore:"UserType"`
-	Name           string              `json:"name" firestore:"Name"`
-	Email          string              `json:"email" firestore:"Email"`
-	Password       string              `json:"password" firestore:"Password"`
-	AreaOfInterest map[string][]string `json:"area_of_interest" firestore:"AreaOfInterest"`
+	UserID         string              `json:"user_id,omitempty" firestore:"UserID"`
+	UserType       string              `json:"user_type,omitempty" firestore:"UserType"`
+	Name           string              `json:"name,omitempty" firestore:"Name"`
+	Email          string              `json:"email,omitempty" firestore:"Email"`
+	Password       string              `json:"password,omitempty" firestore:"Password"`
+	AreaOfInterest map[string][]string `json:"area_of_interest,omitempty" firestore:"AreaOfInterest"`
 	CertOfEvidence []string            `json:"cert_of_evidence,omitempty" firestore:"CertOfEvidence,omitempty"`
 }
 
@@ -89,12 +89,11 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	claims, err := verifyJWT(w, r)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
-		panic(err.Error())
+		fmt.Println(err.Error())
 	}
 
 	// Variables
 	user_id := claims.UserID
-	var user User
 
 	// Init connection to firestore
 	ctx := context.Background()
@@ -115,13 +114,14 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK) //200
 		return
 	} else if r.Method == "GET" {
+		var user User
+
 		dsnap, err := client.Collection("User").Doc(user_id).Get(ctx)
 		if err != nil {
 			fmt.Println(err.Error())
 			return
 		}
 		dsnap.DataTo(&user)
-		fmt.Printf("Document data: %#v\n", user)
 
 		// Hide the user password
 		user.Password = ""
@@ -131,6 +131,23 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 
 	} else if r.Method == "POST" {
+
+		var user User
+
+		err := json.NewDecoder(r.Body).Decode(&user)
+		if err != nil {
+			// If the structure of the body is wrong, return an HTTP error
+			w.WriteHeader(http.StatusBadRequest) //400
+			return
+		}
+
+		_, err = client.Collection("User").Doc(user_id).Set(ctx, user)
+		if err != nil {
+			// Handle any errors in an appropriate way, such as returning them.
+			log.Printf("An error has occurred: %s", err)
+		}
+
+		json.NewEncoder(w).Encode(user)
 		return
 
 	} else {
