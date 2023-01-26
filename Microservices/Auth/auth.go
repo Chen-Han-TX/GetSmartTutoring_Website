@@ -33,7 +33,7 @@ type User struct {
 	Email          string              `json:"email" firestore:"Email"`
 	Password       string              `json:"password" firestore:"Password"`
 	AreaOfInterest map[string][]string `json:"area_of_interest" firestore:"AreaOfInterest"`
-	CertOfEvidence string              `json:"cert_of_evidence" firestore:"CertOfEvidence"`
+	CertOfEvidence []string            `json:"cert_of_evidence,omitempty" firestore:"CertOfEvidence,omitempty"`
 }
 
 // Create a struct that can be encoded into a JWT
@@ -97,7 +97,7 @@ func verifyJWT(w http.ResponseWriter, r *http.Request) (Claims, error) {
 func SignUp(w http.ResponseWriter, r *http.Request) {
 
 	// POST http://localhost:5050/api/auth/signup/student
-	// {"name": "xyz", "email": "..", "password", "area of interest": {"olevel":"..."...}, "certificate":""}
+	// {"name": "xyz", "email": "..", "password", "area of interest": {"olevel":"..."...}, "certificate":[]}
 	// POST http://localhost:5050/api/auth/signup/tutor
 	//{"name": "xyz", "email": "..", "password", "area of interest": {"olevel":"..."...}, "certificate":"..."}
 
@@ -248,7 +248,6 @@ func Login(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		dsnap.DataTo(&user)
-		fmt.Printf("Document data: %#v\n", user)
 
 		if creds.Password != user.Password {
 			w.WriteHeader(http.StatusNotAcceptable) //406
@@ -316,8 +315,8 @@ func Welcome(w http.ResponseWriter, r *http.Request) {
 	}
 	// Finally, return the welcome message to the user, along with their
 	// email given in the token
-	w.Write([]byte(fmt.Sprintf("Welcome %s! /n Your user type is: %s, your user id is : %s", 
-	claims.EmailAddress, claims.UserType, claims.UserID)))
+	w.Write([]byte(fmt.Sprintf("Welcome %s! /n Your user type is: %s, your user id is : %s",
+		claims.EmailAddress, claims.UserType, claims.UserID)))
 
 }
 
