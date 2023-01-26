@@ -6,6 +6,7 @@ import DropdownMultiselect from "react-multiselect-dropdown-bootstrap";
 import { isEmail } from "validator";
 
 import AuthService from "../services/auth.service";
+import SubjectServices from "../services/subject.service";
 import { useNavigate } from "react-router-dom";
 
 const required = (value) => {
@@ -44,11 +45,38 @@ const RegisterStudent = () => {
   const form = useRef();
   const checkBtn = useRef();
 
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [school, setSchool] = useState("");
 
+  var selectedSubjects = {
+    "PSLE": [], "O-Level": [], "A-Level": []
+  }
+
+  const subjects = SubjectServices.getAllSubjects()
+  const PSLESubjects = subjects["PSLE"].sort()
+  const OlevelSubjects = subjects["O-Level"].sort()
+  const AlevelSubjects = subjects["A-Level"].sort()
+
+  const PSLEArray = [];
+  for (let i = 0; i < PSLESubjects.length; i++) {
+    var value = PSLESubjects[i]
+    PSLEArray.push({key: value, label: value })
+  } 
+
+  const OLevelArray = [];
+  for (let i = 0; i < OlevelSubjects.length; i++) {
+    var value = OlevelSubjects[i] 
+    OLevelArray.push({key: value, label: value })
+  } 
+
+  const ALevelArray = [];
+  for (let i = 0; i < AlevelSubjects.length; i++) {
+    var value = AlevelSubjects[i] 
+    ALevelArray.push({key: value, label: value })
+  } 
 
   const [successful, setSuccessful] = useState(false);
   const [message, setMessage] = useState("");
@@ -76,6 +104,18 @@ const RegisterStudent = () => {
     setSchool(school);
   };
 
+  const OnChangePSLE = (subject) => {
+    selectedSubjects["PSLE"] = subject
+  }
+
+  const onChangeOlevel = (subject) => {
+    selectedSubjects["O-Level"] = subject
+  }
+
+  const onChangeAlevel = (subject) => {
+    selectedSubjects["A-Level"] = subject
+  }
+
 
   const handleRegister = (e) => {
     e.preventDefault();
@@ -87,19 +127,27 @@ const RegisterStudent = () => {
 
     // If passed validation, call auth service to send the API request
     if (checkBtn.current.context._errors.length === 0) {
-      AuthService.register_passenger(email, password, first_name, last_name, mobile_number).then(
+      
+      AuthService.register_student(name, email, password, school, selectedSubjects).then(
         (response) => {
-          setMessage("Registered Successfully!");
-          setSuccessful(true);
-          setTimeout(function () {
-            navigate("/login");
-            window.location.reload();
-          }, 2000);
-
+          if (response.status == 200) {
+            setMessage("Registered Successfully!");
+            setSuccessful(true);
+            setTimeout(function () {
+              navigate("/login");
+              window.location.reload();
+            }, 2000);
+          } else {
+            setMessage("Error, try again!");
+            setSuccessful(false);
+            setTimeout(function () {
+              setMessage("");
+            }, 5000);
+          }
         },
         (error) => {
           var resMessage = ""
-          if (error.response.status === 409) {
+          if (error.response.status === 406) {
             resMessage = "This email has been registered!"
           } else {
             resMessage =
@@ -116,14 +164,6 @@ const RegisterStudent = () => {
     }
   };
 
-  const optionsArray = [
-    { key: "au", label: "Australia" },
-    { key: "ca", label: "Canada" },
-    { key: "us", label: "USA" },
-    { key: "pl", label: "Poland" },
-    { key: "es", label: "Spain" },
-    { key: "fr", label: "France" },
-  ];
 
   return (
         <Form onSubmit={handleRegister} ref={form}>
@@ -180,15 +220,33 @@ const RegisterStudent = () => {
                 />
               </div>
 
-              
+              <label htmlFor="options">-----Area of Interests----</label>
+              <div className="mb-3">
+                  <label htmlFor="options">PSLE</label>
+                  <DropdownMultiselect options={PSLEArray} name="pslesubjects" 
+                  handleOnChange={(selected) => {
+                    OnChangePSLE(selected);
+                  }}/>
+              </div>
 
               <div className="mb-3">
-                  <label htmlFor="options">Area of Interests</label>
-                  <DropdownMultiselect options={optionsArray} name="countries" />
+                  <label htmlFor="options">O-Level</label>
+                  <DropdownMultiselect options={OLevelArray} name="olevelsubjects"
+                  handleOnChange={(selected) => {
+                    onChangeOlevel(selected);
+                  }}/>
+              </div>
+
+              <div className="mb-3">
+                  <label htmlFor="options">A-Level</label>
+                  <DropdownMultiselect options={ALevelArray} name="alevelsubjects"
+                  handleOnChange={(selected) => {
+                    onChangeAlevel(selected);
+                  }}/>
               </div>
 
               <div className="d-grid">
-                <button className="btn btn-primary btn-block">Register Passenger</button>
+                <button className="btn btn-success btn-block">Register</button>
               </div>
             </div>
           )}

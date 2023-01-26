@@ -13,9 +13,13 @@ import '../node_modules/bootstrap/dist/css/bootstrap.min.css'
 
 import EventBus from "./common/EventBus";
 import AuthService from './services/auth.service';
+import SubjectServices from './services/subject.service';
 
 
 const App = () => {
+
+  const subjects = SubjectServices.allSubjects();
+
   const [currentUser, setCurrentUser] = useState(undefined);
   const [showTutor, setShowTutor] = useState(false);
   const [showStudent, setShowStudent] = useState(false);
@@ -67,15 +71,15 @@ const App = () => {
                     </Link>
                   </li>
                   <li className='nav-item'>
-                    <Link to={"/register/tutor"} className="nav-link">
-                      Register Tutor
-                    </Link>
-                  </li>
-                  <li className='nav-item'>
                     <Link to={"/register/student"} className="nav-link">
                       Register Student
                     </Link>
-                  </li>        
+                  </li>      
+                  <li className='nav-item'>
+                    <Link to={"/register/tutor"} className="nav-link">
+                      Register Tutor
+                    </Link>
+                  </li>  
                 </ul>
               </div>
             </div>

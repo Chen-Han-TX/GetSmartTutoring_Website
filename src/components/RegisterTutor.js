@@ -1,11 +1,15 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Form from "react-validation/build/form";
 import Input from "react-validation/build/input";
 import CheckButton from "react-validation/build/button";
+import DropdownMultiselect from "react-multiselect-dropdown-bootstrap";
 import { isEmail } from "validator";
-import { useNavigate } from "react-router-dom";
 
 import AuthService from "../services/auth.service";
+import SubjectServices from "../services/subject.service";
+import { useNavigate } from "react-router-dom";
+
+import { MDBFile } from 'mdb-react-ui-kit';
 
 const required = (value) => {
   if (!value) {
@@ -27,19 +31,6 @@ const validEmail = (value) => {
   }
 };
 
-function containsOnlyNumbers(str) {
-  return /^\d+$/.test(str);
-}
-
-const validMobileNumber = (value) => {
-  if (value.length !== 8 || !containsOnlyNumbers(value)) {
-    return (
-      <div className="invalid-feedback d-block">
-        Please enter a valid 8 digit phone number
-      </div>
-    );
-  }
-};
 
 const vpassword = (value) => {
   if (value.length < 8 || value.length > 40) {
@@ -56,14 +47,40 @@ const RegisterTutor = () => {
   const form = useRef();
   const checkBtn = useRef();
 
-
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [first_name, setFirstName] = useState("");
-  const [last_name, setLastName] = useState("");
-  const [mobile_number, setMobileNumber] = useState("");
-  const [ic_number, setICNumber] = useState("");
-  const [car_lic_number, setCarLicNumber] = useState("");
   const [password, setPassword] = useState("");
+
+  var uploadedDocuments = [];
+
+  var selectedSubjects = {
+    "PSLE": [], "O-Level": [], "A-Level": []
+  }
+
+
+  const subjects = SubjectServices.getAllSubjects()
+  const PSLESubjects = subjects["PSLE"].sort()
+  const OlevelSubjects = subjects["O-Level"].sort()
+  const AlevelSubjects = subjects["A-Level"].sort()
+
+
+  const PSLEArray = [];
+  for (let i = 0; i < PSLESubjects.length; i++) {
+    var value = PSLESubjects[i]
+    PSLEArray.push({key: value, label: value })
+  } 
+
+  const OLevelArray = [];
+  for (let i = 0; i < OlevelSubjects.length; i++) {
+    var value = OlevelSubjects[i] 
+    OLevelArray.push({key: value, label: value })
+  } 
+
+  const ALevelArray = [];
+  for (let i = 0; i < AlevelSubjects.length; i++) {
+    var value = AlevelSubjects[i] 
+    ALevelArray.push({key: value, label: value })
+  } 
 
   const [successful, setSuccessful] = useState(false);
   const [message, setMessage] = useState("");
@@ -75,35 +92,30 @@ const RegisterTutor = () => {
     setEmail(email);
   };
 
-  const onChangeFirstName = (e) => {
-    const first_name = e.target.value;
-    setFirstName(first_name);
+  const onChangeName = (e) => {
+    const name = e.target.value;
+    setName(name);
   };
 
-  const onChangeLastName = (e) => {
-    const last_name = e.target.value;
-    setLastName(last_name);
-  };
-
-  const onChangeMobileNumber = (e) => {
-    const mobile_number = e.target.value;
-    setMobileNumber(mobile_number);
-  };
-
-  const onChangeIcNumber = (e) => {
-    const ic_number = e.target.value;
-    setICNumber(ic_number);
-  };
-
-  const onChangeCarLicNumber = (e) => {
-    const car_lic_number = e.target.value;
-    setCarLicNumber(car_lic_number);
-  };
 
   const onChangePassword = (e) => {
     const password = e.target.value;
     setPassword(password);
   };
+
+
+  const OnChangePSLE = (subject) => {
+    selectedSubjects["PSLE"] = subject
+  }
+
+  const onChangeOlevel = (subject) => {
+    selectedSubjects["O-Level"] = subject
+  }
+
+  const onChangeAlevel = (subject) => {
+    selectedSubjects["A-Level"] = subject
+  }
+
 
   const handleRegister = (e) => {
     e.preventDefault();
@@ -115,21 +127,27 @@ const RegisterTutor = () => {
 
     // If passed validation, call auth service to send the API request
     if (checkBtn.current.context._errors.length === 0) {
-      AuthService.register_rider(email, password, first_name, last_name, mobile_number, ic_number, car_lic_number).then(
-        () => {
-
-          setMessage("Registered successfully!");
-          setSuccessful(true);
-          setTimeout(function () {
-            navigate("/login");
-            window.location.reload();
-          }, 2000);
-          
-
+      
+      AuthService.register_student(name, email, password, school, selectedSubjects).then(
+        (response) => {
+          if (response.status == 200) {
+            setMessage("Registered Successfully!");
+            setSuccessful(true);
+            setTimeout(function () {
+              navigate("/login");
+              window.location.reload();
+            }, 2000);
+          } else {
+            setMessage("Error, try again!");
+            setSuccessful(false);
+            setTimeout(function () {
+              setMessage("");
+            }, 5000);
+          }
         },
         (error) => {
           var resMessage = ""
-          if (error.response.status === 409) {
+          if (error.response.status === 406) {
             resMessage = "This email has been registered!"
           } else {
             resMessage =
@@ -147,12 +165,25 @@ const RegisterTutor = () => {
   };
 
 
-
   return (
         <Form onSubmit={handleRegister} ref={form}>
-          <h3>Register as Rider</h3>
+          <h3>Register Tutor</h3>
           {!successful && (
+
             <div>
+
+              <div className="mb-3">
+                <label htmlFor="name">Name</label>
+                <Input
+                  type="text"
+                  className="form-control"
+                  name="name"
+                  value={name}
+                  onChange={onChangeName}
+                  validations={[required]}
+                />
+              </div>
+
               <div className="mb-3">
                 <label htmlFor="email">Email</label>
                 <Input
@@ -162,66 +193,6 @@ const RegisterTutor = () => {
                   value={email}
                   onChange={onChangeEmail}
                   validations={[required, validEmail]}
-                />
-              </div>
-
-              <div className="mb-3">
-                <label htmlFor="first_name">First name</label>
-                <Input
-                  type="text"
-                  className="form-control"
-                  name="first_name"
-                  value={first_name}
-                  onChange={onChangeFirstName}
-                  validations={[required]}
-                />
-              </div>
-
-              <div className="mb-3">
-                <label htmlFor="last_name">Last name</label>
-                <Input
-                  type="text"
-                  className="form-control"
-                  name="last_name"
-                  value={last_name}
-                  onChange={onChangeLastName}
-                  validations={[required]}
-                />
-              </div>
-
-              <div className="mb-3">
-                <label htmlFor="mobile_number">Mobile number</label>
-                <Input
-                  type="text"
-                  className="form-control"
-                  name="mobile_number"
-                  value={mobile_number}
-                  onChange={onChangeMobileNumber}
-                  validations={[required, validMobileNumber]}
-                />
-              </div>
-
-              <div className="mb-3">
-                <label htmlFor="ic_number">NRIC</label>
-                <Input
-                  type="text"
-                  className="form-control"
-                  name="ic_number"
-                  value={ic_number}
-                  onChange={onChangeIcNumber}
-                  validations={[required]}
-                />
-              </div>
-              
-              <div className="mb-3">
-                <label htmlFor="car_lic_number">Car License Number</label>
-                <Input
-                  type="text"
-                  className="form-control"
-                  name="car_lic_number"
-                  value={car_lic_number}
-                  onChange={onChangeCarLicNumber}
-                  validations={[required]}
                 />
               </div>
 
@@ -237,14 +208,59 @@ const RegisterTutor = () => {
                 />
               </div>
 
+              <label htmlFor="options">-----Area of Interests----</label>
+              <div className="mb-3">
+                  <label htmlFor="options">PSLE</label>
+                  <DropdownMultiselect options={PSLEArray} name="pslesubjects" 
+                  handleOnChange={(selected) => {
+                    OnChangePSLE(selected);
+                  }}/>
+              </div>
+
+              <div className="mb-3">
+                  <label htmlFor="options">O-Level</label>
+                  <DropdownMultiselect options={OLevelArray} name="olevelsubjects"
+                  handleOnChange={(selected) => {
+                    onChangeOlevel(selected);
+                  }}/>
+              </div>
+
+              <div className="mb-3">
+                  <label htmlFor="options">A-Level</label>
+                  <DropdownMultiselect options={ALevelArray} name="alevelsubjects"
+                  handleOnChange={(selected) => {
+                    onChangeAlevel(selected);
+                  }}/>
+              </div>
+
+              <label htmlFor="options">-----Certificate of Evidence-----</label>
+              <div class="alert alert-primary" role="alert"> 
+                <p class="mb-0"> 
+                  You may submit any document proving your ability as a Tutor for subjects indicated above
+                </p>
+              </div>
+
+              <div className="mb-3">
+                <input class="form-control" type="file" id="formFileMultiple" multiple />
+              </div>
+
+              <div class="alert alert-danger" role="alert"> 
+                <p class="mb-0"> 
+                  *Under PDPA, your file is kept with credentials and to be verified by the Admin*
+                </p>
+              </div>
+              
+
+
+
               <div className="d-grid">
-                <button className="btn btn-primary btn-block">Register Rider</button>
+                <button className="btn btn-success btn-block">Register</button>
               </div>
             </div>
           )}
 
           {message && (
-            <div className="form-group">
+            <div className="mb-3">
               <div
                 className={
                   successful ? "alert alert-success" : "alert alert-danger"
