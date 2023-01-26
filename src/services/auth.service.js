@@ -13,25 +13,24 @@ let axiosConfig = {
     withCredentials : true,
 }
 
-const register_tutor = (email_address, password, first_name, last_name, mobile_number) => {
+const register_tutor = (name, email, password, subjects, certofevidence) => {
     return axios.post(AUTH_URL + "signup/tutor", {
-      "email_address" : email_address,
-      "password": password,
-      "first_name" : first_name,
-      "last_name" : last_name,
-      "mobile_number": mobile_number
-    }, axiosConfig)
+        "name" : name,
+        "email": email,
+        "password" : password,
+        "area_of_interest": subjects,
+        "cert_of_evidence": certofevidence
+    }, axiosConfig);
 };
 
-const register_student = (email_address, password, first_name, last_name, mobile_number, ic_number, car_lic_number) => {
+
+const register_student = (name, email, password, school, subjects) => {
     return axios.post(AUTH_URL + "signup/student", {
-        "email_address" : email_address,
-        "password": password,
-        "first_name" : first_name,
-        "last_name" : last_name,
-        "mobile_number": mobile_number,
-        "ic_number": ic_number,
-        "car_lic_number": car_lic_number
+        "name" : name,
+        "email": email,
+        "password" : password,
+        "school" : school,
+        "area_of_interest": subjects
     }, axiosConfig);
 };
 

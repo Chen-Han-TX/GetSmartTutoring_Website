@@ -32,6 +32,7 @@ type User struct {
 	Name           string              `json:"name" firestore:"Name"`
 	Email          string              `json:"email" firestore:"Email"`
 	Password       string              `json:"password" firestore:"Password"`
+	School         string              `json:"school,omitempty" firestore:"School,omitempty"`
 	AreaOfInterest map[string][]string `json:"area_of_interest" firestore:"AreaOfInterest"`
 	CertOfEvidence []string            `json:"cert_of_evidence,omitempty" firestore:"CertOfEvidence,omitempty"`
 }
