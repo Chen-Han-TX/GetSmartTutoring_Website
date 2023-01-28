@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/http"
 
+	"cloud.google.com/go/firestore"
 	firebase "firebase.google.com/go"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang-jwt/jwt/v4"
@@ -36,6 +37,13 @@ type User struct {
 	School         string              `json:"school,omitempty" firestore:"School,omitempty"`
 	AreaOfInterest map[string][]string `json:"area_of_interest" firestore:"AreaOfInterest"`
 	CertOfEvidence []string            `json:"cert_of_evidence,omitempty" firestore:"CertOfEvidence,omitempty"`
+}
+
+type Application struct {
+	StudentID        string `json:"student_id" firestore:"StudentID"`
+	TutorID          string `json:"tutor_id" firestore:"TutorID"`
+	Subject          string `json:"subject" firestore:"Subject"`
+	ApplicatonStatus string `json:"application_status" firestore:"ApplicationStatus"`
 }
 
 var jwtKey = []byte("lhdrDMjhveyEVcvYFCgh1dBR2t7GM0YJ") // PLEASE DO NOT SHARE
@@ -85,8 +93,10 @@ func verifyJWT(w http.ResponseWriter, r *http.Request) (Claims, error) {
 func main() {
 	router := mux.NewRouter()
 
-	router.HandleFunc("/api/user/matchtutors", matchTutors).Methods("GET", "POST", "OPTIONS")
-	router.HandleFunc("/api/user/handletutorrequest", handleTutorRequest).Methods("POST", "OPTIONS")
+	router.HandleFunc("/api/user/matchtutors", matchTutors).Methods("POST", "OPTIONS")
+	router.HandleFunc("/api/user/apply", applyForTutor).Methods("POST", "OPTIONS")
+	router.HandleFunc("/api/user/getapplications", getApplications).Methods("GET", "OPTIONS")
+	router.HandleFunc("/api/user/handleapplications", handleApplications).Methods("PUT", "OPTIONS")
 	//router.HandleFunc("/api/user/getuser", GetUser).Methods("GET", "PUT", "OPTIONS")
 	//router.HandleFunc("/api/user/password", UpdatePassword).Methods("PUT", "OPTIONS")
 
@@ -121,16 +131,12 @@ func matchTutors(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 	sa := option.WithCredentialsFile("../eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
 
-	// // ---Authentication--
-	// app, err := firebase.NewApp(ctx, nil, sa)
+	// Verify JWT token to continue using
+	// _, err := verifyJWT(w, r)
 	// if err != nil {
-	// 	fmt.Printf("error initializing app: %v\n", err)
-	// }
-
-	// // Access auth service from the default app
-	// client, err := app.Auth(ctx)
-	// if err != nil {
-	// 	fmt.Printf("error getting Auth client: %v\n", err)
+	// 	w.WriteHeader(http.StatusNotAcceptable) //406
+	// 	json.NewEncoder(w).Encode(err.Error())
+	// 	return
 	// }
 
 	// ----Firestore----
@@ -227,8 +233,181 @@ func matchTutors(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func handleTutorRequest(w http.ResponseWriter, r *http.Request) {
+func applyForTutor(w http.ResponseWriter, r *http.Request) {
+	ctx := context.Background()
+	sa := option.WithCredentialsFile("../eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
 
+	// ----Firestore----
+	app2, err := firebase.NewApp(ctx, nil, sa)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
+	client2, err := app2.Firestore(ctx)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	defer client2.Close()
+
+	if r.Method == "OPTIONS" {
+		w.WriteHeader(http.StatusOK) // 200
+		return
+	} else if r.Method == "POST" {
+		var xApplication Application
+		err := json.NewDecoder(r.Body).Decode(&xApplication)
+		if err != nil {
+			// If the structure of the body is wrong, return an HTTP error
+			w.WriteHeader(http.StatusBadRequest) //400
+			return
+		}
+
+		_, _, err2 := client2.Collection("Applications").Add(ctx, xApplication)
+		if err2 != nil {
+			// Handle any errors in an appropriate way, such as returning them.
+			log.Printf("An error has occurred: %s", err)
+			w.Header().Set("Content-type", "text/plain")
+			w.WriteHeader(http.StatusConflict)
+			fmt.Fprintf(w, "Error - unable to post application!")
+		} else {
+			w.Header().Set("Content-type", "text/plain")
+			w.WriteHeader(http.StatusAccepted)
+			fmt.Fprintf(w, "Successfully posted application!")
+		}
+	}
+}
+
+func getApplications(w http.ResponseWriter, r *http.Request) {
+	ctx := context.Background()
+	sa := option.WithCredentialsFile("../eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
+
+	claims, err := verifyJWT(w, r)
+	if err != nil {
+		w.WriteHeader(http.StatusNotAcceptable) //406
+		json.NewEncoder(w).Encode(err.Error())
+		return
+	}
+
+	// ----Firestore----
+	app2, err := firebase.NewApp(ctx, nil, sa)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
+	client2, err := app2.Firestore(ctx)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	defer client2.Close()
+
+	if claims.UserType != "Tutor" {
+		w.Header().Set("Content-type", "text/plain")
+		w.WriteHeader(http.StatusForbidden)
+		fmt.Fprintf(w, "Error - This method is only for tutors to use!")
+	} else {
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK) // 200
+			return
+		} else if r.Method == "GET" {
+			var applicationList []Application
+			allApplications := client2.Collection("Applications")
+			query := allApplications.Where("TutorID", "==", claims.UserID).Documents(ctx)
+			for {
+				var xApplication Application
+				doc, err := query.Next()
+				if err == iterator.Done {
+					break
+				}
+				if err != nil {
+					log.Fatalf("Failed to iterate: %v", err)
+				}
+				doc.DataTo(&xApplication)
+				applicationList = append(applicationList, xApplication)
+			}
+
+			if len(applicationList) != 0 {
+				w.Header().Set("Content-type", "application/json")
+				res, _ := json.MarshalIndent(applicationList, "", "\t")
+				w.WriteHeader(http.StatusAccepted)
+				fmt.Fprintf(w, string(res))
+			} else {
+				w.Header().Set("Content-type", "text/plain")
+				w.WriteHeader(http.StatusNotFound)
+				fmt.Fprintf(w, "Error - no applications found!")
+			}
+		}
+	}
+}
+
+func handleApplications(w http.ResponseWriter, r *http.Request) {
+	ctx := context.Background()
+	sa := option.WithCredentialsFile("../eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
+
+	claims, err := verifyJWT(w, r)
+	if err != nil {
+		w.WriteHeader(http.StatusNotAcceptable) //406
+		json.NewEncoder(w).Encode(err.Error())
+		return
+	}
+
+	// ----Firestore----
+	app2, err := firebase.NewApp(ctx, nil, sa)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
+	client2, err := app2.Firestore(ctx)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	defer client2.Close()
+
+	if claims.UserType != "Tutor" {
+		w.Header().Set("Content-type", "text/plain")
+		w.WriteHeader(http.StatusForbidden)
+		fmt.Fprintf(w, "Error - This method is only for tutors to use!")
+	} else {
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK) // 200
+			return
+		} else if r.Method == "PUT" {
+			var app Application
+			err := json.NewDecoder(r.Body).Decode(&app)
+			if err != nil {
+				// If the structure of the body is wrong, return an HTTP error
+				w.WriteHeader(http.StatusBadRequest) //400
+				return
+			}
+			query := client2.Collection("Applications").Where("TutorID", "==", app.TutorID).Where("StudentID", "==", app.StudentID).Where("Subject", "==", app.Subject).Documents(ctx)
+			for {
+
+				doc, err := query.Next()
+				if err == iterator.Done {
+					break
+				}
+				if err != nil {
+					log.Fatalf("Failed to iterate: %v", err)
+				}
+
+				_, err = doc.Ref.Update(ctx, []firestore.Update{
+					{
+						Path:  "ApplicationStatus",
+						Value: app.ApplicatonStatus,
+					},
+				})
+				if err != nil {
+					// Handle any errors in an appropriate way, such as returning them.
+					log.Printf("An error has occurred: %s", err)
+					w.Header().Set("Content-type", "text/plain")
+					w.WriteHeader(http.StatusConflict)
+					fmt.Fprintf(w, "Error - Request went wrong...")
+				} else {
+					w.Header().Set("Content-type", "text/plain")
+					w.WriteHeader(http.StatusAccepted)
+					fmt.Fprintf(w, "Application handled successfully!")
+				}
+			}
+		}
+	}
 }
 
 func contains(s []string, str string) bool {
