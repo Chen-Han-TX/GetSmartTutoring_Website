@@ -91,6 +91,6 @@ func main() {
 
 	router.HandleFunc("/api/getsubjects/{type}", Subject).Methods("GET", "OPTIONS")
 
-	fmt.Println("Listening at port 5053")
-	log.Fatal(http.ListenAndServe(":5053", router))
+	fmt.Println("Listening at port 5052")
+	log.Fatal(http.ListenAndServe(":5052", router))
 }

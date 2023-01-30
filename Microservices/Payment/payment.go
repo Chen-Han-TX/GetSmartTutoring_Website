@@ -121,6 +121,7 @@ func createPayment(w http.ResponseWriter, r *http.Request) {
 
 func receivePayment(w http.ResponseWriter, r *http.Request) {
 
+
 }
 
 func makePayment(w http.ResponseWriter, r *http.Request) {
