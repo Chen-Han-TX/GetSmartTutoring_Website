@@ -10,6 +10,8 @@ require (
 	google.golang.org/api v0.108.0
 )
 
+require github.com/plutov/paypal/v4 v4.7.0 // indirect
+
 require (
 	cloud.google.com/go v0.105.0 // indirect
 	cloud.google.com/go/compute v1.14.0 // indirect
