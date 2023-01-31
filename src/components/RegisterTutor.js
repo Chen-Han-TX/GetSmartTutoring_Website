@@ -57,7 +57,6 @@ const RegisterTutor = () => {
     "PSLE": [], "O-Level": [], "A-Level": []
   }
 
-
   const subjects = SubjectServices.getAllSubjects()
   const PSLESubjects = subjects["PSLE"].sort()
   const OlevelSubjects = subjects["O-Level"].sort()
@@ -128,7 +127,7 @@ const RegisterTutor = () => {
     // If passed validation, call auth service to send the API request
     if (checkBtn.current.context._errors.length === 0) {
       
-      AuthService.register_student(name, email, password, school, selectedSubjects).then(
+      AuthService.register_tutor(name, email, password, selectedSubjects, uploadedDocuments).then(
         (response) => {
           if (response.status == 200) {
             setMessage("Registered Successfully!");

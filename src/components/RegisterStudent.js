@@ -44,8 +44,6 @@ const vpassword = (value) => {
 const RegisterStudent = () => {
   const form = useRef();
   const checkBtn = useRef();
-
-
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
