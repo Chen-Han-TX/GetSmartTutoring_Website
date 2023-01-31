@@ -306,6 +306,10 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func UploadDoc(w http.ResponseWriter, r *http.Request) {
+	
+}
+
 // TEST - Check Cookie JWT token and return something
 func Welcome(w http.ResponseWriter, r *http.Request) {
 	claims, err := verifyJWT(w, r)
@@ -321,6 +325,8 @@ func Welcome(w http.ResponseWriter, r *http.Request) {
 
 }
 
+
+
 // CLEAR THE TOKEN COOKIE AND JWT
 func Logout(w http.ResponseWriter, r *http.Request) {
 	// immediately clear the token cookie
@@ -331,6 +337,8 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 	})
 }
+
+
 
 func main() {
 	router := mux.NewRouter()

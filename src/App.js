@@ -104,6 +104,7 @@ const App = () => {
                         Profile
                       </Link>
                     </li>
+
                     <li className="nav-item">
                       <Link to={"/"} className="nav-link" onClick={logOut}>
                         Logout
@@ -146,7 +147,6 @@ const App = () => {
         ) 
       }
 
-      
       { !currentUser ? (
           <div className="auth-wrapper">
             <div className='auth-inner'>

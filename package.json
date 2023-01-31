@@ -12,6 +12,7 @@
     "http-proxy-middleware": "^2.0.6",
     "mdb-react-ui-kit": "^5.1.0",
     "react": "^18.2.0",
+    "react-bootstrap-time-picker": "^2.0.1",
     "react-dom": "^18.2.0",
     "react-firebase-hooks": "^5.1.1",
     "react-multiselect-dropdown-bootstrap": "^1.1.0",
