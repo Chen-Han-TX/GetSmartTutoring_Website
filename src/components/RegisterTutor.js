@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { ChangeEvent, useState, useRef } from "react";
 import * as ReactDOM from 'react-dom';
 import Form from "react-validation/build/form";
 import Input from "react-validation/build/input";
@@ -12,7 +12,9 @@ import { useNavigate } from "react-router-dom";
 
 import TimePicker from 'react-bootstrap-time-picker';
 
-import { MDBFile } from 'mdb-react-ui-kit';
+import { initializeApp } from "firebase/app";
+import { getStorage } from "firebase/storage";
+import {ref, uploadBytesResumable, getDownloadURL } from "firebase/storage"
 
 const required = (value) => {
   if (!value) {
@@ -47,6 +49,20 @@ const vpassword = (value) => {
 
 
 const RegisterTutor = () => {
+  const firebaseConfig = {
+    apiKey: "AIzaSyC1fuJ1HYNnv5o2_UauLPx7wwgQGj_Jcpc",
+    authDomain: "eti-assignment-2.firebaseapp.com",
+    databaseURL: "https://eti-assignment-2-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "eti-assignment-2",
+    storageBucket: "eti-assignment-2.appspot.com",
+    messagingSenderId: "903055257140",
+    appId: "1:903055257140:web:676b8fbb0dfc642dbca461",
+    measurementId: "G-986C89B33B"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const storage = getStorage(app);
+  
   const form = useRef();
   const checkBtn = useRef();
 
@@ -54,17 +70,21 @@ const RegisterTutor = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [hourlyRate, setHourlyRate] = useState(50);
-  const [startTime, setStartTime] = useState("");
-  const [startForEndTime, setStartForEndTime] = useState("9:00");
-  const [endTime, setEndTime] = useState("");
+  const [startTime, setStartTime] = useState("08:00");
+  const [startForEndTime, setStartForEndTime] = useState("09:00");
+  const [endTime, setEndTime] = useState("10:00");
   const [availability, setAvailability] = useState({});
+  const [selectedSubjects, setSelectedSubjects] = useState({});
 
-  var uploadedDocuments = [];
+
+  // Maximum 5 files
+  const MAX_COUNT = 5;
+  const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [fileLimit, setFileLimit] = useState(false);
+  const [uploadedURLs, setUploadedURLs] = useState([]);
 
 
-  var selectedSubjects = {
-    "PSLE": [], "O-Level": [], "A-Level": []
-  }
+
 
   const subjects = SubjectServices.getAllSubjects()
   const PSLESubjects = subjects["PSLE"].sort()
@@ -143,15 +163,27 @@ const RegisterTutor = () => {
   }
 
   const OnChangePSLE = (subject) => {
-    selectedSubjects["PSLE"] = subject
+    let updated = selectedSubjects
+    updated["PSLE"] = subject
+    setSelectedSubjects(selectedSubjects => ({
+      ...updated
+    }));
   }
 
   const onChangeOlevel = (subject) => {
-    selectedSubjects["O-Level"] = subject
+    let updated = selectedSubjects
+    updated["O-Level"] = subject
+    setSelectedSubjects(selectedSubjects => ({
+      ...updated
+    }));
   }
 
   const onChangeAlevel = (subject) => {
-    selectedSubjects["A-Level"] = subject
+    let updated = selectedSubjects
+    updated["A-Level"] = subject
+    setSelectedSubjects(selectedSubjects => ({
+      ...updated
+    }));
   }
 
   const onChangeWeekDays = (weekdays) => {
@@ -166,13 +198,40 @@ const RegisterTutor = () => {
         }));
   }
 
+  const handleUploadFiles = files => {
+    const uploaded = [...uploadedFiles];
+    let limitExceeded = false;
+    files.some((file) => {
+        if (uploaded.findIndex((f) => f.name === file.name) === -1) {
+            uploaded.push(file);
+            if (uploaded.length === MAX_COUNT) setFileLimit(true);
+            if (uploaded.length > MAX_COUNT) {
+                alert(`You can only add a maximum of ${MAX_COUNT} files`);
+                setFileLimit(false);
+                limitExceeded = true;
+                return true;
+            }
+        }
+    })
+    if (!limitExceeded) setUploadedFiles(uploaded)
+  }
+
+  const handleFileEvent =  (e) => {
+    const chosenFiles = Array.prototype.slice.call(e.target.files)
+    handleUploadFiles(chosenFiles);
+}
+
   const handleRegister = (e) => {
     e.preventDefault();
-
     setMessage("");
     setSuccessful(false);
 
     form.current.validateAll();
+
+    //validate
+    if (uploadedFiles.length == 0) {
+      alert("Please uploade at least 1 file!");
+    }
 
     // If passed validation, call auth service to send the API request
     if (checkBtn.current.context._errors.length === 0) {
@@ -188,44 +247,62 @@ const RegisterTutor = () => {
             ...availability,
             ...updatedValue
           }));
-          
-      /*
-      AuthService.register_tutor(name, email, password, selectedSubjects, uploadedDocuments).then(
-        (response) => {
-          if (response.status === 200) {
-            setMessage("Registered Successfully!");
-            setSuccessful(true);
-            setTimeout(function () {
-              navigate("/login");
-              window.location.reload();
-            }, 2000);
-          } else {
-            setMessage("Error, try again!");
-            setSuccessful(false);
-            setTimeout(function () {
-              setMessage("");
-            }, 5000);
+      
+      // upload the file to firebase storage
+      for (var i=0; i<uploadedFiles.length;i++) {
+        const storageRef = ref(storage, `/${email}/${uploadedFiles[i].name}`)
+        const uploadTask = uploadBytesResumable(storageRef, uploadedFiles[i]);
+
+        uploadTask.on(
+          "state_changed",
+          () => {},
+          (err) => console.log(err),
+          () => {
+              getDownloadURL(uploadTask.snapshot.ref).then((url) => {
+                const uploaded = uploadedURLs
+                uploaded.push(url)
+                setUploadedURLs(uploaded);
+              });
+            })
+            console.log("before", uploadedURLs)
+
+            if (uploadedURLs.length === uploadedFiles.length){
+              console.log("After", uploadedURLs)
+              AuthService.register_tutor(name, email, password, hourlyRate, availability, selectedSubjects, uploadedURLs).then(
+                (response) => {
+                  if (response.status === 200) {
+                    setMessage("Registered Successfully!");
+                    setSuccessful(true);
+                    setTimeout(function () {
+                      navigate("/login");
+                      window.location.reload();
+                    }, 2000);
+                  } else {
+                    setMessage("Error, try again!");
+                    setSuccessful(false);
+                    setTimeout(function () {
+                      setMessage("");
+                    }, 5000);
+                  }
+                },
+                (error) => {
+                  var resMessage = ""
+                  if (error.response.status === 406) {
+                    resMessage = "This email has been registered!"
+                  } else {
+                    resMessage =
+                    (error.response &&
+                      error.response.data &&
+                      error.response.data.message) ||
+                    error.message ||
+                    error.toString();
+                  }
+                  setMessage(resMessage);
+                  setSuccessful(false);
+                }
+              );
           }
-        },
-        (error) => {
-          var resMessage = ""
-          if (error.response.status === 406) {
-            resMessage = "This email has been registered!"
-          } else {
-            resMessage =
-            (error.response &&
-              error.response.data &&
-              error.response.data.message) ||
-            error.message ||
-            error.toString();
-          }
-          setMessage(resMessage);
-          setSuccessful(false);
         }
-      );
-      */
-
-
     }
   };
 
@@ -253,8 +330,8 @@ const RegisterTutor = () => {
                 <label htmlFor="email">Email</label>
                 <Input
                   type="text"
-                  className="form-control"
                   name="email"
+                  className="form-control"
                   value={email}
                   onChange={onChangeEmail}
                   validations={[required, validEmail]}
@@ -279,6 +356,7 @@ const RegisterTutor = () => {
                   type="range"
                   min="10"
                   max="100"
+                  className="form-control"
                   step={5}
                   value={hourlyRate}
                   onChange={onChangeHourlyRate}
@@ -296,7 +374,9 @@ const RegisterTutor = () => {
                     name="weekdayArray"
                     handleOnChange={(selected) => {
                     onChangeWeekDays(selected);
-                  }}/>
+                  }}
+                    validations= {[required]}
+                  />
 
                   <label>Start</label>
                   <TimePicker 
@@ -356,8 +436,22 @@ const RegisterTutor = () => {
               </div>
 
               <div className="mb-3">
-                <input className="form-control" type="file" id="formFileMultiple" multiple />
-              </div>
+                <input 
+                className="form-control" 
+                type="file" 
+                multiple
+                id="formFileMultiple" 
+                onChange={handleFileEvent}
+                disabled={fileLimit}
+                 />
+                <div className="uploaded-files-list">
+                    {uploadedFiles.map(file => (
+                      <div >
+                          {file.name}
+                      </div>))}
+                  </div>
+                </div>
+              
               
 
               <div className="d-grid">
