@@ -55,7 +55,7 @@ const RegisterTutor = () => {
   const [password, setPassword] = useState("");
   const [hourlyRate, setHourlyRate] = useState(50);
   const [startTime, setStartTime] = useState("");
-  const [startForEndTime, setStartForEndTime] = useState("11:00");
+  const [startForEndTime, setStartForEndTime] = useState("9:00");
   const [endTime, setEndTime] = useState("");
   const [availability, setAvailability] = useState({});
 
@@ -300,6 +300,7 @@ const RegisterTutor = () => {
 
                   <label>Start</label>
                   <TimePicker 
+                      initialValue="08:00"
                       start="00:00"
                       end="23:59"
                       step={30} 
@@ -309,6 +310,7 @@ const RegisterTutor = () => {
                       />
                   <label>End</label>
                   <TimePicker 
+                      initialValue="10:00"
                       start={startForEndTime}
                       end="23:59"
                       step={30} 
