@@ -46,8 +46,6 @@ const vpassword = (value) => {
 };
 
 
-
-
 const RegisterTutor = () => {
   const form = useRef();
   const checkBtn = useRef();
@@ -59,16 +57,10 @@ const RegisterTutor = () => {
   const [startTime, setStartTime] = useState("");
   const [startForEndTime, setStartForEndTime] = useState("11:00");
   const [endTime, setEndTime] = useState("");
+  const [availability, setAvailability] = useState({});
 
   var uploadedDocuments = [];
 
-  
-  var availability = {
-    "Monday": {
-      "Start": "",
-      "End": "",
-    }
-  }
 
   var selectedSubjects = {
     "PSLE": [], "O-Level": [], "A-Level": []
@@ -97,6 +89,17 @@ const RegisterTutor = () => {
     var value = AlevelSubjects[i] 
     ALevelArray.push({key: value, label: value })
   } 
+
+  const weekdayArray = [
+    {key: "Monday", label: "Monday"},
+    {key: "Tuesday", label: "Tuesday"},
+    {key: "Wednesday", label: "Wednesday"},
+    {key: "Thursday", label: "Thursday"},
+    {key: "Friday", label: "Friday"},
+    {key: "Saturday", label: "Saturday"},
+    {key: "Sunday", label: "Sunday"},
+  ];
+
 
   const [successful, setSuccessful] = useState(false);
   const [message, setMessage] = useState("");
@@ -151,6 +154,18 @@ const RegisterTutor = () => {
     selectedSubjects["A-Level"] = subject
   }
 
+  const onChangeWeekDays = (weekdays) => {
+    let updatedValue = {};
+    for (var i=0; i<weekdays.length; i++) {
+      updatedValue[weekdays[i]] = {
+        "start": "", "end": ""
+      }
+    }
+    setAvailability(availability => ({
+          ...updatedValue
+        }));
+  }
+
   const handleRegister = (e) => {
     e.preventDefault();
 
@@ -161,7 +176,20 @@ const RegisterTutor = () => {
 
     // If passed validation, call auth service to send the API request
     if (checkBtn.current.context._errors.length === 0) {
-      
+
+      // Consolidate the availbility
+      let updatedValue = availability
+      var weekdays = Object.keys(availability)
+      for (var i=0; i<weekdays.length; i++) {
+        updatedValue[weekdays[i]]["start"] = startTime
+        updatedValue[weekdays[i]]["end"] = endTime
+      }
+      setAvailability(availability => ({
+            ...availability,
+            ...updatedValue
+          }));
+          
+      /*
       AuthService.register_tutor(name, email, password, selectedSubjects, uploadedDocuments).then(
         (response) => {
           if (response.status === 200) {
@@ -195,6 +223,9 @@ const RegisterTutor = () => {
           setSuccessful(false);
         }
       );
+      */
+
+
     }
   };
 
@@ -259,9 +290,16 @@ const RegisterTutor = () => {
               <h4>Availabilities</h4>
               <div className="mb-3">
                 <div className="mb-4" id="addAvail">
+
+                  <DropdownMultiselect 
+                    options={weekdayArray} 
+                    name="weekdayArray"
+                    handleOnChange={(selected) => {
+                    onChangeWeekDays(selected);
+                  }}/>
+
                   <label>Start</label>
                   <TimePicker 
-                      initialValue="10:00"
                       start="00:00"
                       end="23:59"
                       step={30} 
@@ -271,7 +309,6 @@ const RegisterTutor = () => {
                       />
                   <label>End</label>
                   <TimePicker 
-                      initialValue="11:00"
                       start={startForEndTime}
                       end="23:59"
                       step={30} 
