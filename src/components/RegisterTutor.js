@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import * as ReactDOM from 'react-dom';
 import Form from "react-validation/build/form";
 import Input from "react-validation/build/input";
 import CheckButton from "react-validation/build/button";
@@ -8,6 +9,8 @@ import { isEmail } from "validator";
 import AuthService from "../services/auth.service";
 import SubjectServices from "../services/subject.service";
 import { useNavigate } from "react-router-dom";
+
+import TimePicker from 'react-bootstrap-time-picker';
 
 import { MDBFile } from 'mdb-react-ui-kit';
 
@@ -43,6 +46,8 @@ const vpassword = (value) => {
 };
 
 
+
+
 const RegisterTutor = () => {
   const form = useRef();
   const checkBtn = useRef();
@@ -50,8 +55,20 @@ const RegisterTutor = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [hourlyRate, setHourlyRate] = useState(50);
+  const [startTime, setStartTime] = useState("");
+  const [startForEndTime, setStartForEndTime] = useState("11:00");
+  const [endTime, setEndTime] = useState("");
 
   var uploadedDocuments = [];
+
+  
+  var availability = {
+    "Monday": {
+      "Start": "",
+      "End": "",
+    }
+  }
 
   var selectedSubjects = {
     "PSLE": [], "O-Level": [], "A-Level": []
@@ -96,12 +113,31 @@ const RegisterTutor = () => {
     setName(name);
   };
 
-
   const onChangePassword = (e) => {
     const password = e.target.value;
     setPassword(password);
   };
 
+  const onChangeHourlyRate = (e) => {
+    const hourlyRate = e.target.value;
+    setHourlyRate(hourlyRate)
+    document.getElementById("hourlyRate").textContent = "$"+hourlyRate
+  }
+
+  const onChangeStartTime = (e) => {
+    const startTime = new Date(e * 1000).toISOString().substring(11, 16)
+
+    // Add 30 mins 
+    const startForEndTime = new Date((e + 1800) * 1000).toISOString().substring(11, 16)
+
+    setStartTime(startTime)
+    setStartForEndTime(startForEndTime)
+  }
+
+  const onChangeEndTime = (e) => {
+    const endTime = new Date(e * 1000).toISOString().substring(11, 16)
+    setEndTime(endTime)
+  }
 
   const OnChangePSLE = (subject) => {
     selectedSubjects["PSLE"] = subject
@@ -114,7 +150,6 @@ const RegisterTutor = () => {
   const onChangeAlevel = (subject) => {
     selectedSubjects["A-Level"] = subject
   }
-
 
   const handleRegister = (e) => {
     e.preventDefault();
@@ -129,7 +164,7 @@ const RegisterTutor = () => {
       
       AuthService.register_tutor(name, email, password, selectedSubjects, uploadedDocuments).then(
         (response) => {
-          if (response.status == 200) {
+          if (response.status === 200) {
             setMessage("Registered Successfully!");
             setSuccessful(true);
             setTimeout(function () {
@@ -163,14 +198,14 @@ const RegisterTutor = () => {
     }
   };
 
-
   return (
         <Form onSubmit={handleRegister} ref={form}>
           <h3>Register Tutor</h3>
           {!successful && (
 
             <div>
-
+              <hr className="hr" />
+              <h4>Basic Details</h4>
               <div className="mb-3">
                 <label htmlFor="name">Name</label>
                 <Input
@@ -207,7 +242,48 @@ const RegisterTutor = () => {
                 />
               </div>
 
-              <label htmlFor="options">-----Area of Interests----</label>
+              <div className="mb-3">
+                <label htmlFor="hourlyrate">Indicated Hourly Rate<div id="hourlyRate">$50</div></label>
+                <Input
+                  type="range"
+                  min="10"
+                  max="100"
+                  step={5}
+                  value={hourlyRate}
+                  onChange={onChangeHourlyRate}
+                  validations={[required]}
+                   />
+              </div>
+
+              <hr className="hr" />
+              <h4>Availabilities</h4>
+              <div className="mb-3">
+                <div className="mb-4" id="addAvail">
+                  <label>Start</label>
+                  <TimePicker 
+                      initialValue="10:00"
+                      start="00:00"
+                      end="23:59"
+                      step={30} 
+                      value={startTime}
+                      onChange={onChangeStartTime}
+                      validations={[required]}
+                      />
+                  <label>End</label>
+                  <TimePicker 
+                      initialValue="11:00"
+                      start={startForEndTime}
+                      end="23:59"
+                      step={30} 
+                      value={endTime}
+                      onChange={onChangeEndTime}
+                      validations={[required]}
+                      />
+                </div>
+              </div>
+
+              <hr className="hr"></hr>
+              <h4>Proficient Subjects</h4>
               <div className="mb-3">
                   <label htmlFor="options">PSLE</label>
                   <DropdownMultiselect options={PSLEArray} name="pslesubjects" 
@@ -232,25 +308,18 @@ const RegisterTutor = () => {
                   }}/>
               </div>
 
-              <label htmlFor="options">-----Certificate of Evidence-----</label>
-              <div class="alert alert-primary" role="alert"> 
-                <p class="mb-0"> 
+              <hr className="hr" />
+              <h4>Certificate of Evidence</h4>
+              <div className="alert alert-primary" role="alert"> 
+                <p className="mb-0"> 
                   You may submit any document proving your ability as a Tutor for subjects indicated above
                 </p>
               </div>
 
               <div className="mb-3">
-                <input class="form-control" type="file" id="formFileMultiple" multiple />
-              </div>
-
-              <div class="alert alert-danger" role="alert"> 
-                <p class="mb-0"> 
-                  *Under PDPA, your file is kept with credentials and to be verified by the Admin*
-                </p>
+                <input className="form-control" type="file" id="formFileMultiple" multiple />
               </div>
               
-
-
 
               <div className="d-grid">
                 <button className="btn btn-success btn-block">Register</button>
