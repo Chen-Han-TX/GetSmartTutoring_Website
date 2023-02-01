@@ -47,8 +47,9 @@ const Profile = () => {
      
     certificates = currentUser.cert_of_evidence
     listItemsCert = (certificates.map(
-      (link) =>
-      <li><a href="{link}">{link}</a></li>
+      (link, index) =>
+      <li>
+        <a href={link}>{"File " + (index + 1)}</a></li>
     ));  
   }
 
@@ -120,7 +121,7 @@ const Profile = () => {
         <Button
             onClick={() => setOpen3(!open3)}
             aria-controls="example-collapse-text"
-            aria-expanded={open3}> Certificate of Evidence: </Button>
+            aria-expanded={open3}> Certificate of Evidence </Button>
         </p>
         <Collapse in={open3}>
         <div id="example-collapse-text">
@@ -131,8 +132,6 @@ const Profile = () => {
 
         </div>
       )}
-
-
 
 
 
