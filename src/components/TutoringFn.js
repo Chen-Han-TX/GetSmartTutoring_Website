@@ -1,5 +1,5 @@
 import AuthService from "../services/auth.service";
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import DropdownMultiselect from "react-multiselect-dropdown-bootstrap";
 import Form from "react-validation/build/form";
 import CheckButton from "react-validation/build/button";
@@ -10,6 +10,7 @@ import SubjectServices from "../services/subject.service";
 
 const Tutoring = () => {
     const currentUser = AuthService.getCurrentUser();
+    const userType = currentUser.user_type;
     const form = useRef();
     const checkBtn = useRef();
     const [name, setName] = useState("");
@@ -17,18 +18,21 @@ const Tutoring = () => {
     const [password, setPassword] = useState("");
     const [school, setSchool] = useState("");
     const [selectedSubjects, setSelectedSubjects] = useState({});
+    const [tutorList, setTutorList] = useState({});
 
     const searchTutor = (subjList) => {
       TutoringService.matchTutors(subjList).then(
         (response) => {
           if (response.status == 202) {
-            console.log(response)
+            OnChangeTutorList(response.data);
           } else {
-            console.log("bruh, " + response);
+            console.log("bruh, " + response.status);
           }
         },
         (error) => {
-          console.log(error);
+          if (error.response.status == 404){
+            OnChangeTutorList({})
+          }
         }
       );
     }
@@ -66,35 +70,14 @@ const Tutoring = () => {
     
     const navigate = useNavigate();
 
-    const onChangeEmail = (e) => {
-        const email = e.target.value;
-        setEmail(email);
-    };
     
-    const onChangeName = (e) => {
-        const name = e.target.value;
-        setName(name);
-    };
-
-
-    const onChangePassword = (e) => {
-        const password = e.target.value;
-        setPassword(password);
-    };
-
-    const onChangeSchool = (e) => {
-        const school = e.target.value;
-        setSchool(school);
-    };
-
     const OnChangePSLE = (subject) => {
         let updated = selectedSubjects
         updated["PSLE"] = subject
         setSelectedSubjects(selectedSubjects => ({
           ...updated
-        }))
+        }));
         searchTutor(selectedSubjects);
-        ;
       }
     
     const onChangeOlevel = (subject) => {
@@ -103,6 +86,7 @@ const Tutoring = () => {
         setSelectedSubjects(selectedSubjects => ({
             ...updated
         }));
+        searchTutor(selectedSubjects);
     }
 
     const onChangeAlevel = (subject) => {
@@ -111,59 +95,29 @@ const Tutoring = () => {
         setSelectedSubjects(selectedSubjects => ({
             ...updated
         }));
+        searchTutor(selectedSubjects);
     }
 
-    const handleRegister = (e) => {
-        e.preventDefault();
-    
-        setMessage("");
-        setSuccessful(false);
-    
-        form.current.validateAll();
-    
-        // If passed validation, call auth service to send the API request
-        if (checkBtn.current.context._errors.length === 0) {
-          
-          AuthService.register_student(name, email, password, school, selectedSubjects).then(
-            (response) => {
-              if (response.status == 200) {
-                setMessage("Applied successfully!");
-                setSuccessful(true);
-                setTimeout(function () {
-                  navigate("/login");
-                  window.location.reload();
-                }, 2000);
-              } else {
-                setMessage("Error, try again!");
-                setSuccessful(false);
-                setTimeout(function () {
-                  setMessage("");
-                }, 5000);
-              }
-            },
-            (error) => {
-              var resMessage = ""
-              if (error.response.status === 406) {
-                resMessage = "This email has been registered!"
-              } else {
-                resMessage =
-                (error.response &&
-                  error.response.data &&
-                  error.response.data.message) ||
-                error.message ||
-                error.toString();
-              }
-              setMessage(resMessage);
-              setSuccessful(false);
-            }
-          );
-        }
-      };
+    const OnChangeTutorList = (newTutorList) => {
+      setTutorList(newTutorList)
+    }
+
+    // const results = [];
+
+    // tutorList.forEach((tutor, index) => {
+    //   results.push(
+    //     <div key={index}>
+    //       <h2>name: {tutor.name}</h2>
+    //       <h2>country: {tutor.email}</h2>
   
+    //       <hr />
+    //     </div>,
+    //   );
+    // });
   
     return (
     <div className="auth-inner">
-        <Form onSubmit={handleRegister} ref={form}>
+        <Form ref={form}>
           <h3>Search for tutors!</h3>
           {!successful && (
 
@@ -201,6 +155,21 @@ const Tutoring = () => {
             </div>
           )}
         </Form>
+        
+        {userType === "Student" && tutorList!=null && tutorList.length!=0 &&(
+          <div>
+           {/* {tutorList.map(tutor => {
+            return (
+              
+                <p>{tutor.name}</p>
+              
+            )
+           })} */}
+
+           
+          </div>
+        )}
+
         </div>
   );
 };

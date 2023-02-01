@@ -133,7 +133,7 @@ func main() {
 
 func matchTutors(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
-	sa := option.WithCredentialsFile("../eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
+	sa := option.WithCredentialsFile("Microservices/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
 	// Verify JWT token to continue using
 	// _, err := verifyJWT(w, r)
 	// if err != nil {
@@ -156,14 +156,14 @@ func matchTutors(w http.ResponseWriter, r *http.Request) {
 
 	var areaOfInterests map[string][]string
 	var allTutors []User
-	var matchedTutors []map[string]string
+	matchedTutors := []map[string]interface{}{}
+
 	tutors := client2.Collection("User")
 
 	if r.Method == "OPTIONS" {
 		w.WriteHeader(http.StatusOK) // 200
 		return
 	} else if r.Method == "POST" {
-		fmt.Println("POSTED!")
 		err := json.NewDecoder(r.Body).Decode(&areaOfInterests)
 		if err != nil {
 			// If the structure of the body is wrong, return an HTTP error
@@ -175,8 +175,6 @@ func matchTutors(w http.ResponseWriter, r *http.Request) {
 		for k := range areaOfInterests {
 			keys = append(keys, k)
 		}
-
-		fmt.Println(keys)
 
 		query := tutors.Where("UserType", "==", "Tutor").Documents(ctx)
 		for {
@@ -191,9 +189,10 @@ func matchTutors(w http.ResponseWriter, r *http.Request) {
 			doc.DataTo(&xTutor)
 			allTutors = append(allTutors, xTutor)
 		}
-	tutorloop:
+
+		var fullsubjlist []string
+		//tutorloop:
 		for _, v := range allTutors {
-			fmt.Println(v.Name)
 			tutorAOIList := make([]string, 0, len(v.AreaOfInterest))
 			for k := range v.AreaOfInterest {
 				tutorAOIList = append(tutorAOIList, k)
@@ -203,22 +202,34 @@ func matchTutors(w http.ResponseWriter, r *http.Request) {
 			for k := range areaOfInterests {
 				studentAOIList = append(studentAOIList, k)
 			}
-
 			for _, y := range studentAOIList {
 				if contains(tutorAOIList, y) {
 					tutorSubjList := v.AreaOfInterest[y]
+					for i, v := range tutorSubjList {
+						tutorSubjList[i] = y + " - " + v
+					}
 					studentSubjList := areaOfInterests[y]
+					for i, v := range studentSubjList {
+						studentSubjList[i] = y + " - " + v
+					}
 
-					if checkSimilar(tutorSubjList, studentSubjList) {
-						tutorObj := map[string]string{
-							"Name":   v.Name,
-							"UserID": v.UserID,
-							"Email":  v.Email,
-						}
-						matchedTutors = append(matchedTutors, tutorObj)
-						continue tutorloop
+					similar, matchedList := checkSimilar(tutorSubjList, studentSubjList)
+
+					if similar {
+						fullsubjlist = append(fullsubjlist, matchedList...)
 					}
 				}
+			}
+			if len(fullsubjlist) != 0 {
+				tutorObj := map[string]interface{}{
+					"Name":               v.Name,
+					"UserID":             v.UserID,
+					"Email":              v.Email,
+					"MatchedSubjectList": fullsubjlist,
+					"HourlyRate":         v.HourlyRate,
+					"Availability":       v.Availability,
+				}
+				matchedTutors = append(matchedTutors, tutorObj)
 			}
 		}
 
@@ -238,7 +249,7 @@ func matchTutors(w http.ResponseWriter, r *http.Request) {
 
 func applyForTutor(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
-	sa := option.WithCredentialsFile("../eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
+	sa := option.WithCredentialsFile("Microservices/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
 
 	// ----Firestore----
 	app2, err := firebase.NewApp(ctx, nil, sa)
@@ -281,7 +292,7 @@ func applyForTutor(w http.ResponseWriter, r *http.Request) {
 
 func getApplications(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
-	sa := option.WithCredentialsFile("../eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
+	sa := option.WithCredentialsFile("Microservices/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
 
 	claims, err := verifyJWT(w, r)
 	if err != nil {
@@ -343,7 +354,7 @@ func getApplications(w http.ResponseWriter, r *http.Request) {
 
 func handleApplications(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
-	sa := option.WithCredentialsFile("../eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
+	sa := option.WithCredentialsFile("Microservices/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
 
 	claims, err := verifyJWT(w, r)
 	if err != nil {
@@ -423,13 +434,18 @@ func contains(s []string, str string) bool {
 	return false
 }
 
-func checkSimilar(listOne, listTwo []string) bool {
+func checkSimilar(listOne, listTwo []string) (bool, []string) {
+	var subjlist []string
 	for _, i := range listOne {
 		for _, j := range listTwo {
 			if i == j {
-				return true
+				subjlist = append(subjlist, i)
 			}
 		}
 	}
-	return false
+	if len(subjlist) != 0 {
+		return true, subjlist
+	} else {
+		return false, subjlist
+	}
 }
