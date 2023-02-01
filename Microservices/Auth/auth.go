@@ -27,14 +27,16 @@ type Credentials struct {
 
 // Struct for User object
 type User struct {
-	UserID         string              `json:"user_id" firestore:"UserID"`
-	UserType       string              `json:"user_type" firestore:"UserType"`
-	Name           string              `json:"name" firestore:"Name"`
-	Email          string              `json:"email" firestore:"Email"`
-	Password       string              `json:"password" firestore:"Password"`
-	School         string              `json:"school,omitempty" firestore:"School,omitempty"`
-	AreaOfInterest map[string][]string `json:"area_of_interest" firestore:"AreaOfInterest"`
-	CertOfEvidence []string            `json:"cert_of_evidence,omitempty" firestore:"CertOfEvidence,omitempty"`
+	UserID         string                       `json:"user_id" firestore:"UserID"`
+	UserType       string                       `json:"user_type" firestore:"UserType"`
+	Name           string                       `json:"name" firestore:"Name"`
+	Email          string                       `json:"email" firestore:"Email"`
+	Password       string                       `json:"password" firestore:"Password"`
+	AreaOfInterest map[string][]string          `json:"area_of_interest" firestore:"AreaOfInterest"`
+	School         string                       `json:"school,omitempty" firestore:"School,omitempty"`
+	HourlyRate     int                          `json:"hourly_rate,omitempty" firestore:"HourlyRate,omitempty"`
+	Availability   map[string]map[string]string `json:"availability,omitempty" firestore:"Availability,omitempty"`
+	CertOfEvidence []string                     `json:"cert_of_evidence,omitempty" firestore:"CertOfEvidence,omitempty"`
 }
 
 // Create a struct that can be encoded into a JWT
@@ -140,7 +142,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		return
 	} else if r.Method == "POST" {
-
+		fmt.Println(r.Body)
 		err := json.NewDecoder(r.Body).Decode(&user)
 		if err != nil {
 			panic(err.Error())
@@ -330,6 +332,7 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 		Path:     "/",
 		HttpOnly: true,
 	})
+	fmt.Println(r.Header)
 }
 
 func main() {
@@ -343,5 +346,4 @@ func main() {
 
 	fmt.Println("Listening at port 5050")
 	log.Fatal(http.ListenAndServe(":5050", router))
-
 }

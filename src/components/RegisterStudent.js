@@ -44,8 +44,6 @@ const vpassword = (value) => {
 const RegisterStudent = () => {
   const form = useRef();
   const checkBtn = useRef();
-
-
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -171,7 +169,8 @@ const RegisterStudent = () => {
           {!successful && (
 
             <div>
-
+              <hr className="hr"></hr>
+              <h4>Basic Details</h4>
               <div className="mb-3">
                 <label htmlFor="name">Name</label>
                 <Input
@@ -220,7 +219,8 @@ const RegisterStudent = () => {
                 />
               </div>
 
-              <label htmlFor="options">-----Area of Interests----</label>
+              <hr className="hr"></hr>
+              <h4>Area of Interests</h4>
               <div className="mb-3">
                   <label htmlFor="options">PSLE</label>
                   <DropdownMultiselect options={PSLEArray} name="pslesubjects" 

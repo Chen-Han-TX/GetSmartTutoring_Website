@@ -5,6 +5,7 @@ import { Routes, Route, Link } from "react-router-dom";
 import Login from "./components/Login";
 import RegisterStudent from "./components/RegisterStudent";
 import RegisterTutor from "./components/RegisterTutor";
+import Profile from "./components/Profile";
 import Tutor from "./components/Tutor";
 import Student from "./components/Student";
 
@@ -104,6 +105,7 @@ const App = () => {
                         Profile
                       </Link>
                     </li>
+
                     <li className="nav-item">
                       <Link to={"/"} className="nav-link" onClick={logOut}>
                         Logout
@@ -146,7 +148,6 @@ const App = () => {
         ) 
       }
 
-      
       { !currentUser ? (
           <div className="auth-wrapper">
             <div className='auth-inner'>
@@ -165,6 +166,7 @@ const App = () => {
               <Routes>
                 <Route exact path={"/"} element={<Student />} />
                 <Route path="/student" element={<Student />} />
+                <Route exact path="/profile" element={<Profile />} />
               </Routes>
               </div>
            </div>
@@ -175,6 +177,7 @@ const App = () => {
                 <Routes>
                   <Route exact path={"/"} element={<Tutor />} />
                   <Route path="/tutor" element={<Tutor  />} />
+                  <Route path="/profile" element={<Profile />} />
                 </Routes>
                 </div>
               </div>
