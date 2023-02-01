@@ -84,8 +84,6 @@ const RegisterTutor = () => {
   const [uploadedURLs, setUploadedURLs] = useState([]);
 
 
-
-
   const subjects = SubjectServices.getAllSubjects()
   const PSLESubjects = subjects["PSLE"].sort()
   const OlevelSubjects = subjects["O-Level"].sort()
@@ -221,7 +219,7 @@ const RegisterTutor = () => {
     handleUploadFiles(chosenFiles);
 }
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     setMessage("");
     setSuccessful(false);
@@ -234,6 +232,7 @@ const RegisterTutor = () => {
     }
 
     // If passed validation, call auth service to send the API request
+    
     if (checkBtn.current.context._errors.length === 0) {
 
       // Consolidate the availbility
@@ -264,11 +263,10 @@ const RegisterTutor = () => {
                 setUploadedURLs(uploaded);
               });
             })
-            console.log("before", uploadedURLs)
-
             if (uploadedURLs.length === uploadedFiles.length){
-              console.log("After", uploadedURLs)
-              AuthService.register_tutor(name, email, password, hourlyRate, availability, selectedSubjects, uploadedURLs).then(
+
+              alert("Files uploaded successfully!")
+              await AuthService.register_tutor(name, email, password, hourlyRate, availability, selectedSubjects, uploadedURLs).then(
                 (response) => {
                   if (response.status === 200) {
                     setMessage("Registered Successfully!");
