@@ -8,6 +8,7 @@ import RegisterTutor from "./components/RegisterTutor";
 import Profile from "./components/Profile";
 import Tutor from "./components/Tutor";
 import Student from "./components/Student";
+import Tutoring from "./components/TutoringFn";
 
 import '../node_modules/bootstrap/dist/css/bootstrap.min.css'
 
@@ -106,6 +107,12 @@ const App = () => {
                       </Link>
                     </li>
 
+                    <li className='nav-item'>
+                      <Link to={"/tutoring"} className="nav-link">
+                        Find tutoring
+                      </Link>
+                    </li>
+
                     <li className="nav-item">
                       <Link to={"/"} className="nav-link" onClick={logOut}>
                         Logout
@@ -166,6 +173,7 @@ const App = () => {
               <Routes>
                 <Route exact path={"/"} element={<Student />} />
                 <Route path="/student" element={<Student />} />
+                <Route exact path="/tutoring" element={<Tutoring />} />
                 <Route exact path="/profile" element={<Profile />} />
               </Routes>
               </div>

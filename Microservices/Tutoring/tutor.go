@@ -29,14 +29,16 @@ type Claims struct {
 }
 
 type User struct {
-	UserID         string              `json:"user_id" firestore:"UserID"`
-	UserType       string              `json:"user_type" firestore:"UserType"`
-	Name           string              `json:"name" firestore:"Name"`
-	Email          string              `json:"email" firestore:"Email"`
-	Password       string              `json:"password" firestore:"Password"`
-	School         string              `json:"school,omitempty" firestore:"School,omitempty"`
-	AreaOfInterest map[string][]string `json:"area_of_interest" firestore:"AreaOfInterest"`
-	CertOfEvidence []string            `json:"cert_of_evidence,omitempty" firestore:"CertOfEvidence,omitempty"`
+	UserID         string                       `json:"user_id" firestore:"UserID"`
+	UserType       string                       `json:"user_type" firestore:"UserType"`
+	Name           string                       `json:"name" firestore:"Name"`
+	Email          string                       `json:"email" firestore:"Email"`
+	Password       string                       `json:"password" firestore:"Password"`
+	AreaOfInterest map[string][]string          `json:"area_of_interest" firestore:"AreaOfInterest"`
+	School         string                       `json:"school,omitempty" firestore:"School,omitempty"`
+	HourlyRate     int                          `json:"hourly_rate,omitempty" firestore:"HourlyRate,omitempty"`
+	Availability   map[string]map[string]string `json:"availability,omitempty" firestore:"Availability,omitempty"`
+	CertOfEvidence []string                     `json:"cert_of_evidence,omitempty" firestore:"CertOfEvidence,omitempty"`
 }
 
 type Application struct {
@@ -44,9 +46,11 @@ type Application struct {
 	TutorID          string `json:"tutor_id" firestore:"TutorID"`
 	Subject          string `json:"subject" firestore:"Subject"`
 	ApplicatonStatus string `json:"application_status" firestore:"ApplicationStatus"`
+	SessionLength    int    `json:"session_length" firestore:"SessionLength"`
+	HourlyRate       int    `json:"hourly_rate" firestore:"HourlyRate"`
 }
 
-var jwtKey = []byte("lhdrDMjhveyEVcvYFCgh1dBR2t7GM0YJ") // PLEASE DO NOT SHARE
+var jwtKey = []byte("lhdrDMjhveyEVcvYFCgh1dBR2t7GM0YK") // PLEASE DO NOT SHARE
 
 func verifyJWT(w http.ResponseWriter, r *http.Request) (Claims, error) {
 	c, err := r.Cookie("token")
@@ -93,10 +97,10 @@ func verifyJWT(w http.ResponseWriter, r *http.Request) (Claims, error) {
 func main() {
 	router := mux.NewRouter()
 
-	router.HandleFunc("/api/user/matchtutors", matchTutors).Methods("POST", "OPTIONS")
-	router.HandleFunc("/api/user/apply", applyForTutor).Methods("POST", "OPTIONS")
-	router.HandleFunc("/api/user/getapplications", getApplications).Methods("GET", "OPTIONS")
-	router.HandleFunc("/api/user/handleapplications", handleApplications).Methods("PUT", "OPTIONS")
+	router.HandleFunc("/api/tutoring/matchtutors", matchTutors).Methods("POST", "OPTIONS")
+	router.HandleFunc("/api/tutoring/apply", applyForTutor).Methods("POST", "OPTIONS")
+	router.HandleFunc("/api/tutoring/getapplications", getApplications).Methods("GET", "OPTIONS")
+	router.HandleFunc("/api/tutoring/handleapplications", handleApplications).Methods("PUT", "OPTIONS")
 	//router.HandleFunc("/api/user/getuser", GetUser).Methods("GET", "PUT", "OPTIONS")
 	//router.HandleFunc("/api/user/password", UpdatePassword).Methods("PUT", "OPTIONS")
 
@@ -130,7 +134,6 @@ func main() {
 func matchTutors(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 	sa := option.WithCredentialsFile("../eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
-
 	// Verify JWT token to continue using
 	// _, err := verifyJWT(w, r)
 	// if err != nil {
@@ -160,7 +163,7 @@ func matchTutors(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK) // 200
 		return
 	} else if r.Method == "POST" {
-
+		fmt.Println("POSTED!")
 		err := json.NewDecoder(r.Body).Decode(&areaOfInterests)
 		if err != nil {
 			// If the structure of the body is wrong, return an HTTP error
