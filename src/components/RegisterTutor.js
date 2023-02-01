@@ -84,8 +84,6 @@ const RegisterTutor = () => {
   const [uploadedURLs, setUploadedURLs] = useState([]);
 
 
-
-
   const subjects = SubjectServices.getAllSubjects()
   const PSLESubjects = subjects["PSLE"].sort()
   const OlevelSubjects = subjects["O-Level"].sort()
