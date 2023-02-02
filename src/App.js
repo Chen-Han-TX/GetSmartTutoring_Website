@@ -9,6 +9,7 @@ import Profile from "./components/Profile";
 import Tutor from "./components/Tutor";
 import Student from "./components/Student";
 import Tutoring from "./components/TutoringFn";
+import Booking from "./components/Booking";
 
 import '../node_modules/bootstrap/dist/css/bootstrap.min.css'
 
@@ -141,6 +142,11 @@ const App = () => {
                           Profile
                         </Link>
                       </li> 
+                      <li className='nav-item'>
+                        <Link to={"/booking"} className="nav-link">
+                          Bookings
+                        </Link>
+                      </li> 
                       <li className="nav-item">
                         <Link to={"/"} className="nav-link" onClick={logOut}>
                           Logout
@@ -186,6 +192,7 @@ const App = () => {
                   <Route exact path={"/"} element={<Tutor />} />
                   <Route path="/tutor" element={<Tutor  />} />
                   <Route path="/profile" element={<Profile />} />
+                  <Route path="/booking" element={<Booking />} />
                 </Routes>
                 </div>
               </div>
