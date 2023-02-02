@@ -1,44 +1,25 @@
 import AuthService from "../services/auth.service";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import DropdownMultiselect from "react-multiselect-dropdown-bootstrap";
-import Form from "react-validation/build/form";
-import CheckButton from "react-validation/build/button";
-import Input from "react-validation/build/input";
-import { useNavigate } from "react-router-dom";
 import TutoringService from "../services/tutoring.service";
 import SubjectServices from "../services/subject.service";
 
 const Tutoring = () => {
     const currentUser = AuthService.getCurrentUser();
-    const userType = currentUser.user_type;
-    const form = useRef();
-    const checkBtn = useRef();
-    const [name, setName] = useState("");
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [school, setSchool] = useState("");
-    const [selectedSubjects, setSelectedSubjects] = useState({});
-    const [tutorList, setTutorList] = useState({});
+    const [selectedSubjects, setSelectedSubjects] = useState({
+      "PSLE" : [],
+      "O-Level": [],
+      "A-Level": []
+    });
+    const [tutorList, setTutorList] = useState([]);
+    const [listItemsTutors, setListItemTutors] = useState("")
 
-    const searchTutor = (subjList) => {
-      TutoringService.matchTutors(subjList).then(
-        (response) => {
-          if (response.status == 202) {
-            OnChangeTutorList(response.data);
-          } else {
-            console.log("bruh, " + response.status);
-          }
-        },
-        (error) => {
-          if (error.response.status == 404){
-            OnChangeTutorList({})
-          }
-        }
-      );
-    }
+    useEffect(() => {
+      setListItemTutors(Array.isArray(tutorList) ? tutorList.map((tutor, index) =>
+      <li key={"tutor" + index}>{tutor.Name}</li>) : []);
 
+    }, [tutorList]);
 
-   
 
     const subjects = SubjectServices.getAllSubjects()
     const PSLESubjects = subjects["PSLE"].sort()
@@ -62,14 +43,6 @@ const Tutoring = () => {
         var value = AlevelSubjects[i] 
         ALevelArray.push({key: value, label: value })
     } 
-
-    
-
-    const [successful, setSuccessful] = useState(false);
-    const [message, setMessage] = useState("");
-    
-    const navigate = useNavigate();
-
     
     const OnChangePSLE = (subject) => {
         let updated = selectedSubjects
@@ -77,7 +50,6 @@ const Tutoring = () => {
         setSelectedSubjects(selectedSubjects => ({
           ...updated
         }));
-        searchTutor(selectedSubjects);
       }
     
     const onChangeOlevel = (subject) => {
@@ -86,7 +58,6 @@ const Tutoring = () => {
         setSelectedSubjects(selectedSubjects => ({
             ...updated
         }));
-        searchTutor(selectedSubjects);
     }
 
     const onChangeAlevel = (subject) => {
@@ -95,32 +66,42 @@ const Tutoring = () => {
         setSelectedSubjects(selectedSubjects => ({
             ...updated
         }));
-        searchTutor(selectedSubjects);
     }
 
-    const OnChangeTutorList = (newTutorList) => {
-      setTutorList(newTutorList)
+
+    const handleSearchTutor = (e) => {
+      e.preventDefault();
+      
+      if (selectedSubjects["PSLE"].length === 0 && selectedSubjects["O-Level"].length === 0 && selectedSubjects["A-Level"].length === 0) {
+        alert("Please select at least one subject!")
+        return
+      }
+
+      console.log("seketed", selectedSubjects)
+
+      TutoringService.matchTutors(selectedSubjects).then(
+        (response) => {
+          console.log(response)
+          if (response.status === 202) {
+            setTutorList(response.data);
+          } else {
+            console.log("response status: " + response.status);
+          }
+        },
+        (error) => {
+          if (error.response.status == 404){
+            setTutorList({})
+            alert("No tutor matched!")
+          }
+        }
+      );
+
     }
-
-    // const results = [];
-
-    // tutorList.forEach((tutor, index) => {
-    //   results.push(
-    //     <div key={index}>
-    //       <h2>name: {tutor.name}</h2>
-    //       <h2>country: {tutor.email}</h2>
-  
-    //       <hr />
-    //     </div>,
-    //   );
-    // });
-  
+    
     return (
     <div className="auth-inner">
-        <Form ref={form}>
+        <div>
           <h3>Search for tutors!</h3>
-          {!successful && (
-
             <div>
               <hr className="hr"></hr>
               <h4>Choose the subjects you are looking for.</h4>
@@ -152,25 +133,17 @@ const Tutoring = () => {
               </div>
               <hr className="hr"></hr>
 
+              <div className="d-grid">
+                <button onClick={handleSearchTutor} className="btn btn-success btn-block">Search</button>
+              </div>
             </div>
-          )}
-        </Form>
-        
-        {userType === "Student" && tutorList!=null && tutorList.length!=0 &&(
-          <div>
-           {/* {tutorList.map(tutor => {
-            return (
-              
-                <p>{tutor.name}</p>
-              
-            )
-           })} */}
-
-           
-          </div>
-        )}
-
+  
         </div>
+
+        <div>
+            <ol>{listItemsTutors}</ol>
+        </div>
+    </div>
   );
 };
 
