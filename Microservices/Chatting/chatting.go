@@ -99,6 +99,9 @@ func main() {
 	// router.HandleFunc("/api/user/messages", GetMessages).Methods("GET, OPTIONS")
 	// router.HandleFunc("/api/user/chatting", getChatList).Methods("GET","OPTIONS")
 	// router.HandleFunc("/api/user/chatting", postMessage).Methods("POST","OPTIONS")
+	// router.HandleFunc("/api/user/messages", GetMessages).Methods("GET, OPTIONS")
+	// router.HandleFunc("/api/user/chatting", getChatList).Methods("GET","OPTIONS")
+	// router.HandleFunc("/api/user/chatting", postMessage).Methods("POST","OPTIONS")
 
 	router.HandleFunc("/api/chatlist", createChatList).Methods("POST", "OPTIONS")
 
@@ -126,7 +129,6 @@ func main() {
 // 	if err != nil {
 // 		log.Fatalln(err)
 // 	}
-
 // 	client, err := app.Firestore(ctx)
 // 	if err != nil {
 // 		log.Fatalln(err)
