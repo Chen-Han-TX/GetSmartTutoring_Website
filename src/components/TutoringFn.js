@@ -18,16 +18,61 @@ const Tutoring = () => {
 
     useEffect(() => {
       // displaying the Tutor Card 
+      /*
+{
+    "Availability": {
+        "Monday": {
+            "end": "11:00",
+            "start": "09:00"
+        },
+        "Tuesday": {
+            "end": "11:00",
+            "start": "09:00"
+        }
+    },
+    "Email": "wesley@gmail.com",
+    "HourlyRate": 50,
+    "MatchedSubjectList": [
+        "PSLE - Chinese",
+        "PSLE - Tamil"
+    ],
+    "Name": "Wesley Teo",
+    "UserID": "eFGen4CT4XSHEArmBPlY81wpfHD3"
+}
+      */
       setListItemTutors(Array.isArray(tutorList) ? tutorList.map((tutor, index) =>
+        <div>
+          <br />
           <Card key={"tutor_"+index} style={{ width: '100%' }}>
             <Card.Body>
               <Card.Title>{index+1 + ". " + tutor.Name}</Card.Title>
               <Card.Text>
-                Availability: 
+              <p>
+                 <strong>Availability</strong> <br />
+                {Object.entries(tutor.Availability).map(([day, schedule], index) => [
+                  day + ': ' + schedule.start.slice(0, 2) + schedule.start.slice(3) + ' to ' + schedule.end.slice(0, 2) + schedule.end.slice(3), 
+                  <br key={index} />
+                ])}
+               </p>
+
+              <p>
+                 <strong>Hourly Rates</strong> <br />
+                 $ {tutor.HourlyRate}
+                 <br />
+               </p>
+
+               <p>
+                 <strong>Matched Subjects</strong> <br />
+                 {tutor.MatchedSubjectList.map((subject, index) => [subject, <br key={index} />])}
+               </p>
+              <hr className="hr"></hr>
               </Card.Text>
-              <Button variant="primary">Book(? or Msg)</Button>
+              <Button variant="primary">Book A Session</Button>
             </Card.Body>
           </Card>
+
+        </div>
+
         ) : []);
 
     }, [tutorList]);
@@ -88,8 +133,6 @@ const Tutoring = () => {
         alert("Please select at least one subject!")
         return
       }
-
-      console.log("seketed", selectedSubjects)
 
       TutoringService.matchTutors(selectedSubjects).then(
         (response) => {
