@@ -99,10 +99,13 @@ func main() {
 	// router.HandleFunc("/api/user/messages", GetMessages).Methods("GET, OPTIONS")
 	// router.HandleFunc("/api/user/chatting", getChatList).Methods("GET","OPTIONS")
 	// router.HandleFunc("/api/user/chatting", postMessage).Methods("POST","OPTIONS")
+	// router.HandleFunc("/api/user/messages", GetMessages).Methods("GET, OPTIONS")
+	// router.HandleFunc("/api/user/chatting", getChatList).Methods("GET","OPTIONS")
+	// router.HandleFunc("/api/user/chatting", postMessage).Methods("POST","OPTIONS")
 
 
-	router.HandleFunc("/api/chatlist", createChatList).Methods("GET", "OPTIONS")
-
+	router.HandleFunc("/api/chatlist", createChatList).Methods("POST", "OPTIONS")
+	router.HandleFunc("/api/chatlist", createChatList).Methods("POST", "OPTIONS")
 	fmt.Println("Listening at port 5070")
 	log.Fatal(http.ListenAndServe(":5070", router))
 
@@ -127,7 +130,6 @@ func main() {
 // 	if err != nil {
 // 		log.Fatalln(err)
 // 	}
-
 // 	client, err := app.Firestore(ctx)
 // 	if err != nil {
 // 		log.Fatalln(err)
@@ -240,7 +242,7 @@ func createChatList(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "OPTIONS" {
 		w.WriteHeader(http.StatusOK) // 200
 		return
-	} else if r.Method == "GET" {
+	} else if r.Method == "POST" {
 		//check if the chatlist already exists in firestore, if not create a new chatlist
 		for _, chat := range chatList {
 			iter := client.Collection("ChatList").Where("StudentID", "==", chat.StudentID).Where("TutorID", "==", chat.TutorID).Documents(ctx)
