@@ -43,6 +43,7 @@ type User struct {
 
 type Application struct {
 	StudentID        string `json:"student_id" firestore:"StudentID"`
+	StudentName      string `json:"student_name" firestore:"StudentName"`
 	TutorID          string `json:"tutor_id" firestore:"TutorID"`
 	Subject          string `json:"subject" firestore:"Subject"`
 	ApplicatonStatus string `json:"application_status" firestore:"ApplicationStatus"`
@@ -133,7 +134,7 @@ func main() {
 
 func matchTutors(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
-	sa := option.WithCredentialsFile("../eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
+	sa := option.WithCredentialsFile("Microservices/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
 	// Verify JWT token to continue using
 	// _, err := verifyJWT(w, r)
 	// if err != nil {
@@ -207,25 +208,16 @@ func matchTutors(w http.ResponseWriter, r *http.Request) {
 				var tutorSubjList []string
 				var studentSubjList []string
 				if contains(tutorAOIList, y) {
-					fmt.Println("match aoi - " + y)
 					tutorSubjList = append(tutorSubjList, v.AreaOfInterest[y]...)
 					for i, v := range tutorSubjList {
 						tutorSubjList[i] = y + " - " + v
 					}
 					studentSubjList = append(studentSubjList, areaOfInterests[y]...)
-					fmt.Print("ASDJASDJ>")
-					fmt.Println(studentSubjList)
 					for i, v := range studentSubjList {
 						studentSubjList[i] = y + " - " + v
 					}
 
-					fmt.Println(tutorSubjList)
-					fmt.Println(studentSubjList)
-
 					similar, matchedList := checkSimilar(tutorSubjList, studentSubjList)
-					fmt.Print("MATCHEDLIST> ")
-					fmt.Println(similar)
-					fmt.Println(matchedList)
 
 					if similar {
 						fullsubjlist = append(fullsubjlist, matchedList...)
