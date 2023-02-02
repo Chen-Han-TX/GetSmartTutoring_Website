@@ -100,8 +100,7 @@ func main() {
 	// router.HandleFunc("/api/user/chatting", getChatList).Methods("GET","OPTIONS")
 	// router.HandleFunc("/api/user/chatting", postMessage).Methods("POST","OPTIONS")
 
-
-	router.HandleFunc("/api/chatlist", createChatList).Methods("GET", "OPTIONS")
+	router.HandleFunc("/api/chatlist", createChatList).Methods("POST", "OPTIONS")
 
 	fmt.Println("Listening at port 5070")
 	log.Fatal(http.ListenAndServe(":5070", router))
@@ -204,14 +203,6 @@ func main() {
 // }
 
 func createChatList(w http.ResponseWriter, r *http.Request) {
-	// Get the JWT token from the cookie
-	// claims, err := verifyJWT(w, r)
-	// if err != nil {
-	// 	return
-	// }
-	//get the user id from the claims
-	// userID := claims.UserID
-	//get the messages from the database
 	ctx := context.Background()
 	sa := option.WithCredentialsFile("../eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
 
@@ -224,6 +215,7 @@ func createChatList(w http.ResponseWriter, r *http.Request) {
 		log.Fatalln(err.Error())
 	}
 	defer client.Close()
+
 	//get the messages from the database
 	chatList := []ChatList{}
 	iter := client.Collection("Application").Where("ApplicationStatus", "==", "success").Documents(ctx)
@@ -240,7 +232,7 @@ func createChatList(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "OPTIONS" {
 		w.WriteHeader(http.StatusOK) // 200
 		return
-	} else if r.Method == "GET" {
+	} else if r.Method == "POST" {
 		//check if the chatlist already exists in firestore, if not create a new chatlist
 		for _, chat := range chatList {
 			iter := client.Collection("ChatList").Where("StudentID", "==", chat.StudentID).Where("TutorID", "==", chat.TutorID).Documents(ctx)
