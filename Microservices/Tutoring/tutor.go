@@ -190,9 +190,10 @@ func matchTutors(w http.ResponseWriter, r *http.Request) {
 			allTutors = append(allTutors, xTutor)
 		}
 
-		var fullsubjlist []string
 		//tutorloop:
 		for _, v := range allTutors {
+			var fullsubjlist []string
+			fmt.Println(v.Name)
 			tutorAOIList := make([]string, 0, len(v.AreaOfInterest))
 			for k := range v.AreaOfInterest {
 				tutorAOIList = append(tutorAOIList, k)
@@ -203,17 +204,28 @@ func matchTutors(w http.ResponseWriter, r *http.Request) {
 				studentAOIList = append(studentAOIList, k)
 			}
 			for _, y := range studentAOIList {
+				var tutorSubjList []string
+				var studentSubjList []string
 				if contains(tutorAOIList, y) {
-					tutorSubjList := v.AreaOfInterest[y]
+					fmt.Println("match aoi - " + y)
+					tutorSubjList = append(tutorSubjList, v.AreaOfInterest[y]...)
 					for i, v := range tutorSubjList {
 						tutorSubjList[i] = y + " - " + v
 					}
-					studentSubjList := areaOfInterests[y]
+					studentSubjList = append(studentSubjList, areaOfInterests[y]...)
+					fmt.Print("ASDJASDJ>")
+					fmt.Println(studentSubjList)
 					for i, v := range studentSubjList {
 						studentSubjList[i] = y + " - " + v
 					}
 
+					fmt.Println(tutorSubjList)
+					fmt.Println(studentSubjList)
+
 					similar, matchedList := checkSimilar(tutorSubjList, studentSubjList)
+					fmt.Print("MATCHEDLIST> ")
+					fmt.Println(similar)
+					fmt.Println(matchedList)
 
 					if similar {
 						fullsubjlist = append(fullsubjlist, matchedList...)

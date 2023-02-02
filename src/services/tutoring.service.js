@@ -17,7 +17,6 @@ const matchTutors = (searchedSubjects) => {
     return axios.post(TUTORING_URL + "matchtutors", searchedSubjects,
         axiosConfig)
             .then((response) => {
-                console.log(response.data)
         return response;
       });
 };
@@ -26,7 +25,6 @@ const applyForTutor = (application) => {
     return axios.post(TUTORING_URL + "apply", application,
         axiosConfig)
             .then((response) => {
-                console.log(response.data)
         return response.data;
       });
 };
@@ -35,7 +33,6 @@ const getApplications = () => {
     return axios.get(TUTORING_URL + "getapplications", 
         axiosConfig)
             .then((response) => {
-                console.log(response.data)
         return response.data;
       });
 };
@@ -44,7 +41,6 @@ const handleApplications = (application) => {
     return axios.put(TUTORING_URL + "handleapplications", application,
         axiosConfig)
             .then((response) => {
-                console.log(response.data)
         return response.data;
       });
 };
