@@ -3,6 +3,8 @@ import React, { useState, useEffect } from "react";
 import DropdownMultiselect from "react-multiselect-dropdown-bootstrap";
 import TutoringService from "../services/tutoring.service";
 import SubjectServices from "../services/subject.service";
+import Card from 'react-bootstrap/Card';
+import Button from 'react-bootstrap/Button';
 
 const Tutoring = () => {
     const currentUser = AuthService.getCurrentUser();
@@ -15,8 +17,18 @@ const Tutoring = () => {
     const [listItemsTutors, setListItemTutors] = useState("")
 
     useEffect(() => {
+      // displaying the Tutor Card 
       setListItemTutors(Array.isArray(tutorList) ? tutorList.map((tutor, index) =>
-      <li key={"tutor" + index}>{tutor.Name}</li>) : []);
+          <Card key={"tutor_"+index} style={{ width: '100%' }}>
+            <Card.Body>
+              <Card.Title>{index+1 + ". " + tutor.Name}</Card.Title>
+              <Card.Text>
+                Availability: 
+              </Card.Text>
+              <Button variant="primary">Book(? or Msg)</Button>
+            </Card.Body>
+          </Card>
+        ) : []);
 
     }, [tutorList]);
 
@@ -97,7 +109,7 @@ const Tutoring = () => {
       );
 
     }
-    
+
     return (
     <div className="auth-inner">
         <div>
@@ -141,7 +153,8 @@ const Tutoring = () => {
         </div>
 
         <div>
-            <ol>{listItemsTutors}</ol>
+        <hr className="hr"></hr>
+            {listItemsTutors}
         </div>
     </div>
   );
