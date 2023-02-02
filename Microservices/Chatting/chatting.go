@@ -99,7 +99,11 @@ func main() {
 	// router.HandleFunc("/api/user/messages", GetMessages).Methods("GET, OPTIONS")
 	// router.HandleFunc("/api/user/chatting", getChatList).Methods("GET","OPTIONS")
 	// router.HandleFunc("/api/user/chatting", postMessage).Methods("POST","OPTIONS")
+	// router.HandleFunc("/api/user/messages", GetMessages).Methods("GET, OPTIONS")
+	// router.HandleFunc("/api/user/chatting", getChatList).Methods("GET","OPTIONS")
+	// router.HandleFunc("/api/user/chatting", postMessage).Methods("POST","OPTIONS")
 
+	router.HandleFunc("/api/chatlist", createChatList).Methods("POST", "OPTIONS")
 	router.HandleFunc("/api/chatlist", createChatList).Methods("POST", "OPTIONS")
 
 	fmt.Println("Listening at port 5070")
