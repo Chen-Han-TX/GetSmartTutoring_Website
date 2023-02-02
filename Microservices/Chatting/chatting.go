@@ -34,11 +34,19 @@ type User struct {
 	CertOfEvidence []string            `json:"cert_of_evidence,omitempty" firestore:"CertOfEvidence,omitempty"`
 }
 
-type Message struct {
-	SenderID    string    `json:"sender_id"`
-	RecipientID string    `json:"recipient_id"`
-	Message     string    `json:"message"`
-	Timestamp   time.Time `json:"timestamp"`
+type ChatList struct {
+	StudentID string             `json:"student_id" firestore:"StudentID"`
+	TutorID   string             `json:"tutor_id" firestore:"TutorID"`
+	Messages  map[string]Message `json:"messages" firestore:"Messages"`
+}
+
+type Application struct {
+	StudentID        string `json:"student_id" firestore:"StudentID"`
+	TutorID          string `json:"tutor_id" firestore:"TutorID"`
+	Subject          string `json:"subject" firestore:"Subject"`
+	ApplicatonStatus string `json:"application_status" firestore:"ApplicationStatus"`
+	SessionLength    int    `json:"session_length" firestore:"SessionLength"`
+	HourlyRate       int    `json:"hourly_rate" firestore:"HourlyRate"`
 }
 
 var jwtKey = []byte("lhdrDMjhveyEVcvYFCgh1dBR2t7GM0YJ") // PLEASE DO NOT SHARE
@@ -89,12 +97,11 @@ func main() {
 	router := mux.NewRouter()
 
 	//create a handler for the route for getting the chat list for the user
-	router.HandleFunc("/api/user/messages", GetMessages).Methods("GET, OPTIONS")
-	router.HandleFunc("/api/user/chatting", getChatList).Methods("GET","OPTIONS")
-	//post a message to the chat
-	router.HandleFunc("/api/user/chatting", postMessage).Methods("POST","OPTIONS")
+	// router.HandleFunc("/api/user/messages", GetMessages).Methods("GET, OPTIONS")
+	// router.HandleFunc("/api/user/chatting", getChatList).Methods("GET","OPTIONS")
+	// router.HandleFunc("/api/user/chatting", postMessage).Methods("POST","OPTIONS")
 
-
+	router.HandleFunc("/api/chatlist", createChatList).Methods("POST", "OPTIONS")
 
 	fmt.Println("Listening at port 5070")
 	log.Fatal(http.ListenAndServe(":5070", router))
@@ -116,14 +123,10 @@ func GetMessages(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 	sa := option.WithCredentialsFile("../eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
 
-	// conf := &firebase.Config{
-	// 	ProjectID: "project-id",
-	// }
 	app, err := firebase.NewApp(ctx, nil, sa)
 	if err != nil {
 		log.Fatalln(err)
 	}
-
 
 	client, err := app.Firestore(ctx)
 	if err != nil {
@@ -178,13 +181,11 @@ func postMessage(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 	sa := option.WithCredentialsFile("../eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
 
-	
-
 	app, err := firebase.NewApp(ctx, nil, sa)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	
+
 	client, err := app.Firestore(ctx)
 	if err != nil {
 		log.Fatalln(err)
@@ -202,42 +203,54 @@ func postMessage(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//for getting the chat name for the user, the user must be logged in, return the chat list from firebase firestore
-func getChatList(w http.ResponseWriter, r *http.Request) {
-	//check if the user is logged in
-	claims, err := verifyJWT(w, r)
-	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
+//retreive the ApplicationStatus, StudentID and TutorID from the firestore,store them in a application struct and return the struct
 
+// get the application info from firebase, for the application that the applicationStatus is success, create a new chatlist and add it to the firestore. chatlist contains the studentID and tutorID, if the chatlist already exists, do nothing
+func createChatList(w http.ResponseWriter, r *http.Request) {
+	// Get the JWT token from the cookie
+	// claims, err := verifyJWT(w, r)
+	// if err != nil {
+	// 	return
+	// }
 	//get the user id from the claims
-	userID := claims.UserID
+	// userID := claims.UserID
+	//get the messages from the database
+	ctx := context.Background()
+	sa := option.WithCredentialsFile("../eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
 
-	//get the user type from the claims
-	userType := claims.UserType
-
-	//get the user from the firestore
-	user, err := getUser(userID)
+	app, err := firebase.NewApp(ctx, nil, sa)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		log.Fatalln(err)
+	}
+	client, err := app.Firestore(ctx)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer client.Close()
+	//get the messages from the database
+	chatList := []ChatList{}
+	iter := client.Collection("Application").Where("ApplicationStatus", "==", "success").Documents(ctx)
+	for {
+		doc, err := iter.Next()
+		if err != nil {
+			break
+		}
+		var application Application
+		doc.DataTo(&application)
+		chatList = append(chatList, ChatList{StudentID: application.StudentID, TutorID: application.TutorID})
+	}
+	//check if the chatlist already exists in firestore, if not create a new chatlist
+	for _, chat := range chatList {
+		iter := client.Collection("ChatList").Where("StudentID", "==", chat.StudentID).Where("TutorID", "==", chat.TutorID).Documents(ctx)
+		if iter == nil {
+			_, _, err = client.Collection("ChatList").Add(ctx, map[string]interface{}{
+				"StudentID": chat.StudentID,
+				"TutorID":   chat.TutorID,
+			})
+			if err != nil {
+				log.Fatalf("Failed adding alovelace: %v", err)
+			}
+		}
 	}
 
-	//get the chat list from the user
-	chatList := user.AreaOfInterest[userType]
-
-	//get the chat list from the firestore
-	chats, err := getChats(chatList)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	//return the chat list
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(chats)
 }
-
-
