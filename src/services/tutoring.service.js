@@ -41,7 +41,7 @@ const handleApplications = (application) => {
     return axios.put(TUTORING_URL + "handleapplications", application,
         axiosConfig)
             .then((response) => {
-        return response.data;
+        return response;
       });
 };
 
