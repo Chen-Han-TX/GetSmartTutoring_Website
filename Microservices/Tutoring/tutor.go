@@ -101,7 +101,7 @@ func main() {
 	router.HandleFunc("/api/tutoring/matchtutors", matchTutors).Methods("POST", "OPTIONS")
 	router.HandleFunc("/api/tutoring/apply", applyForTutor).Methods("POST", "OPTIONS")
 	router.HandleFunc("/api/tutoring/getapplications", getApplications).Methods("GET", "OPTIONS")
-	router.HandleFunc("/api/tutoring/handleapplications", handleApplications).Methods("PUT", "OPTIONS")
+	router.HandleFunc("/api/tutoring/handleapplications", handleApplications).Methods("POST", "OPTIONS")
 	//router.HandleFunc("/api/user/getuser", GetUser).Methods("GET", "PUT", "OPTIONS")
 	//router.HandleFunc("/api/user/password", UpdatePassword).Methods("PUT", "OPTIONS")
 
@@ -194,7 +194,6 @@ func matchTutors(w http.ResponseWriter, r *http.Request) {
 		//tutorloop:
 		for _, v := range allTutors {
 			var fullsubjlist []string
-			fmt.Println(v.Name)
 			tutorAOIList := make([]string, 0, len(v.AreaOfInterest))
 			for k := range v.AreaOfInterest {
 				tutorAOIList = append(tutorAOIList, k)
@@ -317,10 +316,38 @@ func getApplications(w http.ResponseWriter, r *http.Request) {
 	}
 	defer client2.Close()
 
-	if claims.UserType != "Tutor" {
-		w.Header().Set("Content-type", "text/plain")
-		w.WriteHeader(http.StatusForbidden)
-		fmt.Fprintf(w, "Error - This method is only for tutors to use!")
+	if claims.UserType == "Student" {
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK) // 200
+			return
+		} else if r.Method == "GET" {
+			var applicationList []Application
+			allApplications := client2.Collection("Applications")
+			query := allApplications.Where("StudentID", "==", claims.UserID).Documents(ctx)
+			for {
+				var xApplication Application
+				doc, err := query.Next()
+				if err == iterator.Done {
+					break
+				}
+				if err != nil {
+					log.Fatalf("Failed to iterate: %v", err)
+				}
+				doc.DataTo(&xApplication)
+				applicationList = append(applicationList, xApplication)
+			}
+
+			if len(applicationList) != 0 {
+				w.Header().Set("Content-type", "application/json")
+				res, _ := json.MarshalIndent(applicationList, "", "\t")
+				w.WriteHeader(http.StatusAccepted)
+				fmt.Fprintf(w, string(res))
+			} else {
+				w.Header().Set("Content-type", "text/plain")
+				w.WriteHeader(http.StatusNotFound)
+				fmt.Fprintf(w, "Error - no applications found!")
+			}
+		}
 	} else {
 		if r.Method == "OPTIONS" {
 			w.WriteHeader(http.StatusOK) // 200
@@ -386,8 +413,10 @@ func handleApplications(w http.ResponseWriter, r *http.Request) {
 	} else {
 		if r.Method == "OPTIONS" {
 			w.WriteHeader(http.StatusOK) // 200
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+			w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, PUT")
 			return
-		} else if r.Method == "PUT" {
+		} else if r.Method == "POST" {
 			var app Application
 			err := json.NewDecoder(r.Body).Decode(&app)
 			if err != nil {
