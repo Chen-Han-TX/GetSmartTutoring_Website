@@ -105,14 +105,14 @@ func verifyJWT(w http.ResponseWriter, r *http.Request) (Claims, error) {
 func main() {
 	router := mux.NewRouter()
 
-	router.HandleFunc("/api/chatlist", createChatList).Methods("POST", "OPTIONS")
-	//For the user, retrieve all the chatlist that the user is involved in
+	//Create a chat list if the tutor accepts the application (when the application status is changed to "accepted")
+	router.HandleFunc("/api/createchatlist", createChatList).Methods("POST", "OPTIONS")
+	//For the user, retrieve all the chatlist that he is involved in
 	router.HandleFunc("/api/getlist", getChatList).Methods("GET", "OPTIONS")
-	//For the user, retrieve all the messages for a chat in a chatlist
+	//For the user, retrieve all the messages for a specific chat in a chatlist
 	router.HandleFunc("/api/getmessages/{userid_opp}", getMessages).Methods("GET", "OPTIONS")
 	//For the user, send a message to a chat in a chatlist
-	router.HandleFunc("/api/sendmessage/{userid_opp}", sendMessage).Methods("POST", "OPTIONS")
-
+	router.HandleFunc("/api/sendmessages/{userid_opp}", sendMessage).Methods("POST", "OPTIONS")
 	fmt.Println("Listening at port 5070")
 	log.Fatal(http.ListenAndServe(":5070", router))
 
@@ -252,11 +252,11 @@ func getChatList(w http.ResponseWriter, r *http.Request) {
 
 // write the getmessage function, get all the messages from the firebase firestore in Message struct. Sort the messages by timestamp
 func getMessages(w http.ResponseWriter, r *http.Request) {
-	claims, err := verifyJWT(w, r)
-	if err != nil {
-		w.WriteHeader(http.StatusNotAcceptable)
-		fmt.Println(err.Error())
-	}
+	claims, _ := verifyJWT(w, r)
+	// if err != nil {
+	// 	w.WriteHeader(http.StatusNotAcceptable)
+	// 	fmt.Println(err.Error())
+	// }
 	userid := claims.UserID
 
 	vars := mux.Vars(r)
@@ -279,21 +279,8 @@ func getMessages(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK) // 200
 		return
 	} else if r.Method == "GET" {
-
-		//if the user is a student
-		if claims.UserType == "Student" {
-			iter := client.Collection("ChatList").Where("StudentID", "==", userid).Where("TutorID", "==", anotherUserId).Documents(ctx)
-			for {
-				doc, err := iter.Next()
-				if err != nil {
-					break
-				}
-				var chatList ChatList
-				doc.DataTo(&chatList)
-				//sort the messages by timestamp
-			}
-		}
-		//if the user is a tutor
+		messages := []Message{}
+		//get the messages from the database, user data from jwt
 		if claims.UserType == "Tutor" {
 			iter := client.Collection("ChatList").Where("TutorID", "==", userid).Where("StudentID", "==", anotherUserId).Documents(ctx)
 			for {
@@ -303,11 +290,49 @@ func getMessages(w http.ResponseWriter, r *http.Request) {
 				}
 				var chatList ChatList
 				doc.DataTo(&chatList)
-				//sort the messages by timestamp
-				sort.Slice(chatList.Messages, func(i, j int) bool {
-					return chatList.Messages[i].Timestamp < chatList.Messages[j].Timestamp
+				//messages is an array under ChatList
+				messages = chatList.Messages
+			}
+
+			if len(messages) == 0 {
+				w.Header().Set("Content-type", "text/plain")
+				// w.WriteHeader(http.StatusNotFound)
+				fmt.Fprintf(w, "No messages found")
+				return
+			} else {
+				// w.Header().Set("Content-Type", "application/json")
+				// w.WriteHeader(http.StatusAccepted)
+				//display the messages in the array
+				json.NewEncoder(w).Encode(messages)
+			}
+		} else if claims.UserType == "Student" {
+			iter := client.Collection("ChatList").Where("StudentID", "==", userid).Where("TutorID", "==", anotherUserId).Documents(ctx)
+			for {
+				doc, err := iter.Next()
+				if err != nil {
+					break
+				}
+				var chatList ChatList
+				doc.DataTo(&chatList)
+				//messages is an array under ChatList
+				messages = chatList.Messages
+				//sort the messages by timestamp, latest first
+				sort.Slice(messages, func(i, j int) bool {
+					return messages[i].Timestamp > messages[j].Timestamp
 				})
-				json.NewEncoder(w).Encode(chatList.Messages)
+
+			}
+
+			if len(messages) == 0 {
+				w.Header().Set("Content-type", "text/plain")
+				// w.WriteHeader(http.StatusNotFound)
+				fmt.Fprintf(w, "No messages found")
+				return
+			} else {
+				// w.Header().Set("Content-Type", "application/json")
+				// w.WriteHeader(http.StatusAccepted)
+				//display the messages in the array
+				json.NewEncoder(w).Encode(messages)
 			}
 		}
 	}
@@ -349,7 +374,7 @@ func sendMessage(w http.ResponseWriter, r *http.Request) {
 		//if the user is a student
 		if claims.UserType == "Student" {
 			iter := client.Collection("ChatList").Where("StudentID", "==", userid).Where("TutorID", "==", anotherUserId).Documents(ctx)
-			
+
 			for {
 				doc, err := iter.Next()
 				if err != nil {
