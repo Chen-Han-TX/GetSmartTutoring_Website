@@ -113,7 +113,11 @@ const App = () => {
                         Find tutoring
                       </Link>
                     </li>
-
+                    <li className='nav-item'>
+                        <Link to={"/booking"} className="nav-link">
+                          Bookings
+                        </Link>
+                      </li> 
                     <li className="nav-item">
                       <Link to={"/"} className="nav-link" onClick={logOut}>
                         Logout
@@ -181,6 +185,7 @@ const App = () => {
                 <Route path="/student" element={<Student />} />
                 <Route exact path="/tutoring" element={<Tutoring />} />
                 <Route exact path="/profile" element={<Profile />} />
+                <Route path="/booking" element={<Booking />} />
               </Routes>
               </div>
            </div>
