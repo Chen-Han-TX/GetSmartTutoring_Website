@@ -158,6 +158,34 @@ const Tutoring = () => {
       console.log("sending request") 
       console.log("Chosen subject: ", chosenSubject)
       console.log("tutor", clickedTutor.Name)
+
+      var appJson = {
+        "application_status":"Pending",
+        "hourly_rate": clickedTutor.HourlyRate,
+        "session_length":2,
+        "student_id":currentUser.user_id,
+        "student_name":currentUser.name,
+        "subject":chosenSubject,
+        "tutor_id":clickedTutor.UserID
+      }
+
+      TutoringService.applyForTutor(appJson).then(
+        (response) => {
+          console.log(response)
+          if (response.status === 202) {
+            console.log("success!!!")
+            alert("Booking successful! Please wait for the Tutor to approve.")
+            window.location.reload(true)
+          } else {
+            console.log("response status: " + response.status);
+          }
+        },
+        (error) => {
+          if (error.response.status == 404){
+            alert("error!!!")
+          }
+        }
+      );
     }
 
     return (

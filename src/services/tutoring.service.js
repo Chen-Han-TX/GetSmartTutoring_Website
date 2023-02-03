@@ -25,7 +25,7 @@ const applyForTutor = (application) => {
     return axios.post(TUTORING_URL + "apply", application,
         axiosConfig)
             .then((response) => {
-        return response.data;
+        return response;
       });
 };
 
@@ -38,7 +38,7 @@ const getApplications = () => {
 };
 
 const handleApplications = (application) => {
-    return axios.put(TUTORING_URL + "handleapplications", application,
+    return axios.post(TUTORING_URL + "handleapplications", application,
         axiosConfig)
             .then((response) => {
         return response;
