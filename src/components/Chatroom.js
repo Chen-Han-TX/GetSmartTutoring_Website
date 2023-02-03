@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Container, Row, Col, Form, Button, ListGroup } from 'react-bootstrap';
 import AuthService from "../services/auth.service";
+import ChattingServices from '../services/chatting.service';
 
 function ChatRoom({ chatDetail }) {
 
@@ -13,12 +14,33 @@ function ChatRoom({ chatDetail }) {
   const handleSubmit = (event) => {
     event.preventDefault();
     if (message !== "") {
-        setMessages([...messages, {
-            "sender_id": currentUser.user_id,
-            "content": message,
-            "timestamp": Date.now()
-        }]);
-        setMessage('');
+        var opp_user = ""
+        if (currentUser.user_type === "Tutor") {
+            opp_user = chatDetail.student_id
+        } else {
+            opp_user = chatDetail.tutor_id
+        }
+        ChattingServices.sendMsg(opp_user, message).then(
+            (response) => {
+              console.log(response)
+              if (response.status === 200) {
+                setMessages([...messages, {
+                    "sender_id": currentUser.user_id,
+                    "content": message,
+                    "timestamp": Date.now()
+                }]);
+                setMessage('');
+              } else {
+                console.log("response status: " + response.status);
+                alert("Server problem")
+              }
+            },
+            (error) => {
+              if (error.response.status == 404){
+                alert("something went wrong")
+              }
+            }
+        );
     }
   };
 
