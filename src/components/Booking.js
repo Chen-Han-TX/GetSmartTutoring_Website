@@ -28,7 +28,9 @@ const Booking = () => {
         app.application_status = "Accepted"
         TutoringService.handleApplications(app).then(
             (response) => {
-              console.log(response)
+              alert("Tutoring application has been accepted!")
+              window.location.reload(true)
+
             },
             (error) => {
               if (error.response.status == 404){
@@ -42,7 +44,8 @@ const Booking = () => {
         app.application_status = "Rejected"
         TutoringService.handleApplications(app).then(
             (response) => {
-              console.log(response)
+              alert("Tutoring application has been rejected!")
+              window.location.reload(true)
             },
             (error) => {
               if (error.response.status == 404){
