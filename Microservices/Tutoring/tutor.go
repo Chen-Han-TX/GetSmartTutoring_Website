@@ -134,7 +134,7 @@ func main() {
 
 func matchTutors(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
-	sa := option.WithCredentialsFile("Microservices/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
+	sa := option.WithCredentialsFile("../eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
 	// Verify JWT token to continue using
 	// _, err := verifyJWT(w, r)
 	// if err != nil {

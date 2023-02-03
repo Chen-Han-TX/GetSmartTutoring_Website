@@ -7,7 +7,6 @@ require (
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/golang-jwt/jwt/v4 v4.4.3
 	github.com/gorilla/mux v1.8.0
-	github.com/plutov/paypal/v4 v4.7.0
 	google.golang.org/api v0.108.0
 )
 

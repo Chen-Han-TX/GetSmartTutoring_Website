@@ -153,6 +153,10 @@ const Tutoring = () => {
 
     const handleBookSession = (e) => {
       e.preventDefault();
+      if (chosenSubject === "") {
+        alert("Please choose one subject!")
+        return
+      } 
 
       // TO-DO
       console.log("sending request") 
