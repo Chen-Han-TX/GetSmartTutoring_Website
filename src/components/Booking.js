@@ -57,10 +57,11 @@ const Booking = () => {
 
       useEffect(() => {
         // displaying the Application Cards
+        console.log(listItemsApps)
         setListItemsApps(Array.isArray(appList) ? appList.map((app, index) =>
         <Card key={"app_"+index} style={{ width: '100%' }}>
         <Card.Body>
-            <Card.Title>{index+1 + ". " + app.student_name}</Card.Title>
+            <Card.Title>{index+1 + ". " + app.tutor_name}</Card.Title>
             <Card.Text>
             Subject requested: {app.subject}
             </Card.Text>
