@@ -6,6 +6,7 @@ import { Dropdown, DropdownButton } from 'react-bootstrap';
 import TutoringService from "../services/tutoring.service";
 import SubjectServices from "../services/subject.service";
 import Card from 'react-bootstrap/Card';
+import moment from "moment";
 
 
 const Tutoring = () => {
@@ -20,10 +21,16 @@ const Tutoring = () => {
     const [listItemsTutors, setListItemTutors] = useState("")
     const [clickedTutor, setClickedTutor] = useState(null)
     const [chosenSubject, setChosenSubject] = useState("");
+    const [chosenDuration, setChosenDuration] = useState(0);
 
     const handleSelect = (eventKey) => {
       setChosenSubject(eventKey);
     };
+
+    const handleSelectDuration = (eventKey) => {
+      setChosenDuration(eventKey)
+    }
+
 
     const [show, setShow] = useState(false);
 
@@ -153,24 +160,24 @@ const Tutoring = () => {
 
     const handleBookSession = (e) => {
       e.preventDefault();
+      if (chosenDuration === 0) {
+        alert("Please choose a duration for your booking!")
+        return
+      }
       if (chosenSubject === "") {
         alert("Please choose one subject!")
         return
       } 
 
-      // TO-DO
-      console.log("sending request") 
-      console.log("Chosen subject: ", chosenSubject)
-      console.log("tutor", clickedTutor.Name)
-
       var appJson = {
         "application_status":"Pending",
         "hourly_rate": clickedTutor.HourlyRate,
-        "session_length":2,
+        "session_length": parseInt(chosenDuration, 10),
         "student_id":currentUser.user_id,
         "student_name":currentUser.name,
         "subject":chosenSubject,
-        "tutor_id":clickedTutor.UserID
+        "tutor_id":clickedTutor.UserID,
+        "tutor_name": clickedTutor.Name
       }
 
       TutoringService.applyForTutor(appJson).then(
@@ -263,7 +270,7 @@ const Tutoring = () => {
               <br />
             </p>
             <p>
-              <strong>Choose Subject</strong> <br />
+              <strong>Choose A Subject</strong> <br />
               <Dropdown onSelect={handleSelect}>
                 <Dropdown.Toggle variant="success" id="dropdown-basic">
                   {chosenSubject || "Select a subject"}
@@ -275,6 +282,29 @@ const Tutoring = () => {
                       {subject}
                     </Dropdown.Item>
                   ))}
+                </Dropdown.Menu>
+              </Dropdown>
+            </p>
+            <p>
+              <strong>Choose Duration (min. 1 hour)</strong> <br />
+              <Dropdown onSelect={handleSelectDuration}>
+                <Dropdown.Toggle variant="success" id="dropdown-basic">
+                  {chosenDuration + " Hour(s)" || "Select duration"}
+                </Dropdown.Toggle>
+                <Dropdown.Menu>
+                {Object.entries(clickedTutor.Availability)
+                .slice(0, 1)
+                .map(([day, schedule]) => {
+                    const start = moment(schedule.start, "HH:mm");
+                    const end = moment(schedule.end, "HH:mm");
+                    const diff = end.diff(start, "hours");
+
+                    return [...Array(diff).keys()].map((i) => (
+                      <Dropdown.Item key={i} eventKey={i + 1}>
+                        {i + 1 + " hour(s)"}
+                      </Dropdown.Item>
+                    ));
+                  })}
                 </Dropdown.Menu>
               </Dropdown>
             </p>
@@ -293,3 +323,7 @@ const Tutoring = () => {
 };
 
   export default Tutoring; 
+
+  /*
+
+  */

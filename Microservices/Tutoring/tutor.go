@@ -45,6 +45,7 @@ type Application struct {
 	StudentID        string `json:"student_id" firestore:"StudentID"`
 	StudentName      string `json:"student_name" firestore:"StudentName"`
 	TutorID          string `json:"tutor_id" firestore:"TutorID"`
+	TutorName        string `json:"tutor_name" firestore:"TutorName"`
 	Subject          string `json:"subject" firestore:"Subject"`
 	ApplicatonStatus string `json:"application_status" firestore:"ApplicationStatus"`
 	SessionLength    int    `json:"session_length" firestore:"SessionLength"`
@@ -252,7 +253,7 @@ func matchTutors(w http.ResponseWriter, r *http.Request) {
 
 func applyForTutor(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
-	sa := option.WithCredentialsFile("Microservices/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
+	sa := option.WithCredentialsFile("../eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
 
 	// ----Firestore----
 	app2, err := firebase.NewApp(ctx, nil, sa)
@@ -295,7 +296,7 @@ func applyForTutor(w http.ResponseWriter, r *http.Request) {
 
 func getApplications(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
-	sa := option.WithCredentialsFile("Microservices/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
+	sa := option.WithCredentialsFile("../eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
 
 	claims, err := verifyJWT(w, r)
 	if err != nil {
@@ -385,7 +386,7 @@ func getApplications(w http.ResponseWriter, r *http.Request) {
 
 func handleApplications(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
-	sa := option.WithCredentialsFile("Microservices/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
+	sa := option.WithCredentialsFile("../eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
 
 	claims, err := verifyJWT(w, r)
 	if err != nil {
