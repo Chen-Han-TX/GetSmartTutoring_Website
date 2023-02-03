@@ -16,23 +16,23 @@ import (
 	firebase "firebase.google.com/go"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
-	"github.com/plutov/paypal/v4"
 	"google.golang.org/api/option"
 )
 
 type Payment struct {
-	PaymentID int `json:"payment_id" firestore:"UserID"`
-	Amount    int `json:"amount" firestore:"UserID"`
-	TutorID   int `json:"tutor_id" firestore:"tutor_id"`
-	StudentID int `json:"student_id" firestore:"student_id"`
-	SessionID int `json:"session_id" firestore:"session_id"`
+	Amount    int    `json:"amount" firestore:"Amount"`
+	TutorID   string `json:"tutor_id" firestore:"TutorID"`
+	StudentID string `json:"student_id" firestore:"StudentID"`
+	SessionID string `json:"session_id" firestore:"SessionID"`
 }
 
+/*
 var (
 	c           *paypal.Client
 	err         error
 	accessToken *paypal.TokenResponse
 )
+*/
 
 func main() {
 
@@ -52,7 +52,7 @@ func main() {
 	*/
 	router := mux.NewRouter()
 	//router.HandleFunc("/api/payment/", SignUp).Methods("POST", "OPTIONS")
-	router.HandleFunc("/api/payment", GetPayment).Methods("POST", "GET")
+	router.HandleFunc("/api/payment", GetPayment).Methods("POST", "OPTIONS")
 
 	fmt.Println("Listening at port 5053")
 	log.Fatal(http.ListenAndServe(":5053", router))
@@ -77,7 +77,10 @@ func GetPayment(w http.ResponseWriter, r *http.Request) {
 	}
 	defer client.Close()
 
-	if r.Method == "POST" {
+	if r.Method == "OPTIONS" {
+		w.WriteHeader(http.StatusOK)
+		return
+	} else if r.Method == "POST" {
 
 		var payment Payment
 
@@ -88,19 +91,13 @@ func GetPayment(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		_, _, err = client.Collection("Payment").Add(ctx, map[string]interface{}{
-			"PaymentID": payment.PaymentID,
-			"Amount":    payment.Amount,
-			"TutorID":   payment.TutorID,
-			"StudentID": payment.StudentID,
-			"SessionID": payment.SessionID,
-		})
+		_, err = client.Collection("Payment").Doc(payment.SessionID).Set(ctx, payment)
 
 		if err != nil {
 			// Handle any errors in an appropriate way, such as returning them.
 			log.Printf("An error has occurred: %s", err)
 		}
-
+		json.NewEncoder(w).Encode(payment)
 		return
 
 	} else {
@@ -185,6 +182,7 @@ func GetPayment(w http.ResponseWriter, r *http.Request) {
 }
 */
 
+/*
 func receivePayment(w http.ResponseWriter, r *http.Request) {
 
 }
@@ -196,3 +194,5 @@ func makePayment(w http.ResponseWriter, r *http.Request) {
 func authorizePayment(w http.ResponseWriter, r *http.Request) {
 
 }
+
+*/
