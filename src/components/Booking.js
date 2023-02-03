@@ -30,7 +30,6 @@ const Booking = () => {
             (response) => {
               alert("Tutoring application has been accepted!")
               window.location.reload(true)
-
             },
             (error) => {
               if (error.response.status == 404){
@@ -61,7 +60,12 @@ const Booking = () => {
         setListItemsApps(Array.isArray(appList) ? appList.map((app, index) =>
         <Card key={"app_"+index} style={{ width: '100%' }}>
         <Card.Body>
+          {userType==="Tutor" && (
+            <Card.Title>{index+1 + ". " + app.student_name}</Card.Title>
+          )}
+          {userType==="Student" && (
             <Card.Title>{index+1 + ". " + app.tutor_name}</Card.Title>
+          )}
             <Card.Text>
             Subject requested: {app.subject}
             </Card.Text>
