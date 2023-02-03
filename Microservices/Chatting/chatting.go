@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sort"
+	"time"
 
 	"log"
 	"net/http"
@@ -37,13 +39,14 @@ type ChatList struct {
 	StudentID string `json:"student_id" firestore:"StudentID"`
 	TutorID   string `json:"tutor_id" firestore:"TutorID"`
 	//message array contains senderID content and timestamp, can be null
-	Messages []map[string]Message `json:"messages" firestore:"Messages"`
+	Messages []Message `json:"messages" firestore:"Messages"`
 }
 
 type Message struct {
 	SenderID string `json:"sender_id" firestore:"SenderID"`
 	Content  string `json:"content" firestore:"Content"`
-	Time     string `json:"time" firestore:"Time"`
+	//unix timestamp
+	Timestamp int64 `json:"timestamp" firestore:"Timestamp"`
 }
 
 type Application struct {
@@ -105,6 +108,10 @@ func main() {
 	router.HandleFunc("/api/chatlist", createChatList).Methods("POST", "OPTIONS")
 	//For the user, retrieve all the chatlist that the user is involved in
 	router.HandleFunc("/api/getlist", getChatList).Methods("GET", "OPTIONS")
+	//For the user, retrieve all the messages for a chat in a chatlist
+	router.HandleFunc("/api/getmessages/{userid_opp}", getMessages).Methods("GET", "OPTIONS")
+	//For the user, send a message to a chat in a chatlist
+	router.HandleFunc("/api/sendmessage/{userid_opp}", sendMessage).Methods("POST", "OPTIONS")
 
 	fmt.Println("Listening at port 5070")
 	log.Fatal(http.ListenAndServe(":5070", router))
@@ -145,7 +152,7 @@ func createChatList(w http.ResponseWriter, r *http.Request) {
 			doc.DataTo(&application)
 			chatListData.TutorID = application.TutorID
 			chatListData.StudentID = application.StudentID
-			chatListData.Messages = []map[string]Message{}
+			chatListData.Messages = []Message{}
 			chatList = append(chatList, chatListData)
 		}
 		//send the messages to the user
@@ -239,6 +246,140 @@ func getChatList(w http.ResponseWriter, r *http.Request) {
 			// w.Header().Set("Content-Type", "application/json")
 			// w.WriteHeader(http.StatusAccepted)
 			json.NewEncoder(w).Encode(chatList)
+		}
+	}
+}
+
+// write the getmessage function, get all the messages from the firebase firestore in Message struct. Sort the messages by timestamp
+func getMessages(w http.ResponseWriter, r *http.Request) {
+	claims, err := verifyJWT(w, r)
+	if err != nil {
+		w.WriteHeader(http.StatusNotAcceptable)
+		fmt.Println(err.Error())
+	}
+	userid := claims.UserID
+
+	vars := mux.Vars(r)
+	anotherUserId := vars["userid_opp"]
+
+	ctx := context.Background()
+	sa := option.WithCredentialsFile("../eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
+
+	app, err := firebase.NewApp(ctx, nil, sa)
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+	client, err := app.Firestore(ctx)
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+	defer client.Close()
+
+	if r.Method == "OPTIONS" {
+		w.WriteHeader(http.StatusOK) // 200
+		return
+	} else if r.Method == "GET" {
+
+		//if the user is a student
+		if claims.UserType == "Student" {
+			iter := client.Collection("ChatList").Where("StudentID", "==", userid).Where("TutorID", "==", anotherUserId).Documents(ctx)
+			for {
+				doc, err := iter.Next()
+				if err != nil {
+					break
+				}
+				var chatList ChatList
+				doc.DataTo(&chatList)
+				//sort the messages by timestamp
+			}
+		}
+		//if the user is a tutor
+		if claims.UserType == "Tutor" {
+			iter := client.Collection("ChatList").Where("TutorID", "==", userid).Where("StudentID", "==", anotherUserId).Documents(ctx)
+			for {
+				doc, err := iter.Next()
+				if err != nil {
+					break
+				}
+				var chatList ChatList
+				doc.DataTo(&chatList)
+				//sort the messages by timestamp
+				sort.Slice(chatList.Messages, func(i, j int) bool {
+					return chatList.Messages[i].Timestamp < chatList.Messages[j].Timestamp
+				})
+				json.NewEncoder(w).Encode(chatList.Messages)
+			}
+		}
+	}
+}
+
+func sendMessage(w http.ResponseWriter, r *http.Request) {
+	claims, _ := verifyJWT(w, r)
+	// if err != nil {
+	// 	w.WriteHeader(http.StatusNotAcceptable)
+	// 	fmt.Println(err.Error())
+	// }
+	userid := claims.UserID
+
+	vars := mux.Vars(r)
+	anotherUserId := vars["userid_opp"]
+
+	ctx := context.Background()
+	sa := option.WithCredentialsFile("../eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
+
+	app, err := firebase.NewApp(ctx, nil, sa)
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+	client, err := app.Firestore(ctx)
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+	defer client.Close()
+
+	if r.Method == "OPTIONS" {
+		w.WriteHeader(http.StatusOK) // 200
+		return
+	} else if r.Method == "POST" {
+		var message Message
+		_ = json.NewDecoder(r.Body).Decode(&message)
+		// message.Content = strings.TrimSpace(message.Content)
+		message.SenderID = userid
+		message.Timestamp = time.Now().Unix()
+		//if the user is a student
+		if claims.UserType == "Student" {
+			iter := client.Collection("ChatList").Where("StudentID", "==", userid).Where("TutorID", "==", anotherUserId).Documents(ctx)
+			
+			for {
+				doc, err := iter.Next()
+				if err != nil {
+					break
+				}
+				var chatList ChatList
+				doc.DataTo(&chatList)
+				chatList.Messages = append(chatList.Messages, message)
+				_, err = client.Collection("ChatList").Doc(doc.Ref.ID).Set(ctx, chatList)
+				if err != nil {
+					log.Fatalf("Failed adding chatlist: %v", err)
+				}
+			}
+		}
+		//if the user is a tutor
+		if claims.UserType == "Tutor" {
+			iter := client.Collection("ChatList").Where("TutorID", "==", userid).Where("StudentID", "==", anotherUserId).Documents(ctx)
+			for {
+				doc, err := iter.Next()
+				if err != nil {
+					break
+				}
+				var chatList ChatList
+				doc.DataTo(&chatList)
+				chatList.Messages = append(chatList.Messages, message)
+				_, err = client.Collection("ChatList").Doc(doc.Ref.ID).Set(ctx, chatList)
+				if err != nil {
+					log.Fatalf("Failed adding chatlist: %v", err)
+				}
+			}
 		}
 	}
 }
