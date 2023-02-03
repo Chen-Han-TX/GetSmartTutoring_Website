@@ -55,54 +55,56 @@ type Application struct {
 	HourlyRate       int    `json:"hourly_rate" firestore:"HourlyRate"`
 }
 
-// var jwtKey = []byte("lhdrDMjhveyEVcvYFCgh1dBR2t7GM0YJ") // PLEASE DO NOT SHARE
+var jwtKey = []byte("lhdrDMjhveyEVcvYFCgh1dBR2t7GM0YJ") // PLEASE DO NOT SHARE
 
-// func verifyJWT(w http.ResponseWriter, r *http.Request) (Claims, error) {
-// 	c, err := r.Cookie("token")
-// 	if err != nil {
-// 		if err == http.ErrNoCookie {
-// 			// If the cookie is not set, return an unauthorized status
-// 			w.WriteHeader(http.StatusUnauthorized)
-// 			return Claims{}, err
-// 		}
-// 		// For any other type of error, return a bad request status
-// 		w.WriteHeader(http.StatusBadRequest)
-// 		return Claims{}, err
-// 	}
+func verifyJWT(w http.ResponseWriter, r *http.Request) (Claims, error) {
+	c, err := r.Cookie("token")
+	if err != nil {
+		if err == http.ErrNoCookie {
+			// If the cookie is not set, return an unauthorized status
+			w.WriteHeader(http.StatusUnauthorized)
+			return Claims{}, err
+		}
+		// For any other type of error, return a bad request status
+		w.WriteHeader(http.StatusBadRequest)
+		return Claims{}, err
+	}
 
-// 	// Get the JWT string from the cookie
-// 	tknStr := c.Value
-// 	// Initialize a new instance of `Claims`
-// 	claims := &Claims{}
-// 	// Parse the JWT string and store the result in `claims`.
-// 	// Note that we are passing the key in this method as well. This method will return an error
-// 	// if the token is invalid (if it has expired according to the expiry time we set on sign in),
-// 	// or if the signature does not match
-// 	tkn, err := jwt.ParseWithClaims(tknStr, claims, func(token *jwt.Token) (interface{}, error) {
-// 		return jwtKey, nil
-// 	})
-// 	if err != nil {
-// 		if err == jwt.ErrSignatureInvalid {
-// 			w.WriteHeader(http.StatusUnauthorized)
-// 			return *claims, err
-// 		}
-// 		w.WriteHeader(http.StatusBadRequest)
-// 		return *claims, err
-// 	}
+	// Get the JWT string from the cookie
+	tknStr := c.Value
+	// Initialize a new instance of `Claims`
+	claims := &Claims{}
+	// Parse the JWT string and store the result in `claims`.
+	// Note that we are passing the key in this method as well. This method will return an error
+	// if the token is invalid (if it has expired according to the expiry time we set on sign in),
+	// or if the signature does not match
+	tkn, err := jwt.ParseWithClaims(tknStr, claims, func(token *jwt.Token) (interface{}, error) {
+		return jwtKey, nil
+	})
+	if err != nil {
+		if err == jwt.ErrSignatureInvalid {
+			w.WriteHeader(http.StatusUnauthorized)
+			return *claims, err
+		}
+		w.WriteHeader(http.StatusBadRequest)
+		return *claims, err
+	}
 
-// 	if !tkn.Valid {
-// 		w.WriteHeader(http.StatusUnauthorized)
-// 		return *claims, err
-// 	}
-// 	// Token is valid
+	if !tkn.Valid {
+		w.WriteHeader(http.StatusUnauthorized)
+		return *claims, err
+	}
+	// Token is valid
 
-// 	return *claims, nil
-// }
+	return *claims, nil
+}
 
 func main() {
 	router := mux.NewRouter()
 
 	router.HandleFunc("/api/chatlist", createChatList).Methods("POST", "OPTIONS")
+	//For the user, retrieve all the chatlist that the user is involved in
+	router.HandleFunc("/api/getlist", getChatList).Methods("GET", "OPTIONS")
 
 	fmt.Println("Listening at port 5070")
 	log.Fatal(http.ListenAndServe(":5070", router))
@@ -133,7 +135,7 @@ func createChatList(w http.ResponseWriter, r *http.Request) {
 
 		var chatListData ChatList
 		//chatlist contains tutor id, student id and message array, message array contains senderID content and timestamp
-		iter := client.Collection("Applications").Where("ApplicationStatus", "==", "Success").Documents(ctx)
+		iter := client.Collection("Applications").Where("ApplicationStatus", "==", "Accepted").Documents(ctx)
 		for {
 			doc, err := iter.Next()
 			if err != nil {
@@ -151,7 +153,8 @@ func createChatList(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(chatListData)
 
 		for _, chat := range chatList {
-			//check the chatlist in firebase if the tutorID and studentid is already in the chatlist, if not add it to the chatlist
+			// Check if the chatList entry already exists in the database
+			found := false
 			iter := client.Collection("ChatList").Where("TutorID", "==", chat.TutorID).Where("StudentID", "==", chat.StudentID).Documents(ctx)
 			for {
 				doc, err := iter.Next()
@@ -161,15 +164,81 @@ func createChatList(w http.ResponseWriter, r *http.Request) {
 				var chatList ChatList
 				doc.DataTo(&chatList)
 				if chatList.TutorID == chat.TutorID && chatList.StudentID == chat.StudentID {
+					found = true
 					break
 				}
 			}
-			//add the chatlist to the firebase
-			_, _, err := client.Collection("ChatList").Add(ctx, chat)
-			if err != nil {
-				log.Fatalf("Failed adding chatlist: %v", err)
+			// Add the chatList to the database if it does not already exist
+			if !found {
+				_, _, err := client.Collection("ChatList").Add(ctx, chat)
+				if err != nil {
+					log.Fatalf("Failed adding chatlist: %v", err)
+				}
 			}
+		}
+	}
+}
 
+func getChatList(w http.ResponseWriter, r *http.Request) {
+	claims, _ := verifyJWT(w, r)
+	// if err != nil {
+	// 	w.WriteHeader(http.StatusNotAcceptable)
+	// 	fmt.Println(err.Error())
+	// }
+	userid := claims.UserID
+
+	ctx := context.Background()
+	sa := option.WithCredentialsFile("../eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
+
+	app, err := firebase.NewApp(ctx, nil, sa)
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+	client, err := app.Firestore(ctx)
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+	defer client.Close()
+
+	if r.Method == "OPTIONS" {
+		w.WriteHeader(http.StatusOK) // 200
+		return
+	} else if r.Method == "GET" {
+		chatList := []ChatList{}
+		//get the messages from the database, user data from jwt
+		if claims.UserType == "Tutor" {
+			iter := client.Collection("ChatList").Where("TutorID", "==", userid).Documents(ctx)
+			for {
+				doc, err := iter.Next()
+				if err != nil {
+					break
+				}
+				var chatListData ChatList
+				doc.DataTo(&chatListData)
+				chatList = append(chatList, chatListData)
+			}
+		}
+		if claims.UserType == "Student" {
+			iter := client.Collection("ChatList").Where("StudentID", "==", userid).Documents(ctx)
+			for {
+				doc, err := iter.Next()
+				if err != nil {
+					break
+				}
+				var chatListData ChatList
+				doc.DataTo(&chatListData)
+				chatList = append(chatList, chatListData)
+			}
+		}
+		if len(chatList) == 0 {
+			w.Header().Set("Content-type", "text/plain")
+			w.WriteHeader(http.StatusNotFound)
+			fmt.Fprintf(w, "No chatlist found")
+			return
+		} else {
+			// w.Header().Set("Content-Type", "application/json")
+			// w.WriteHeader(http.StatusAccepted)
+			json.NewEncoder(w).Encode(chatList)
 		}
 	}
 }
