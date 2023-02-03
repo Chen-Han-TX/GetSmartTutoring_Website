@@ -10,6 +10,7 @@ import Tutor from "./components/Tutor";
 import Student from "./components/Student";
 import Tutoring from "./components/TutoringFn";
 import Booking from "./components/Booking";
+import ChatRoomPage from './components/ChatroomPage';
 
 import '../node_modules/bootstrap/dist/css/bootstrap.min.css'
 
@@ -17,7 +18,6 @@ import '../node_modules/bootstrap/dist/css/bootstrap.min.css'
 import EventBus from "./common/EventBus";
 import AuthService from './services/auth.service';
 import SubjectServices from './services/subject.service';
-
 
 const App = () => {
 
@@ -118,6 +118,11 @@ const App = () => {
                           Bookings
                         </Link>
                       </li> 
+                      <li className='nav-item'>
+                        <Link to={"/chat"} className="nav-link">
+                          ChatRoom
+                        </Link>
+                      </li> 
                     <li className="nav-item">
                       <Link to={"/"} className="nav-link" onClick={logOut}>
                         Logout
@@ -149,6 +154,11 @@ const App = () => {
                       <li className='nav-item'>
                         <Link to={"/booking"} className="nav-link">
                           Bookings
+                        </Link>
+                      </li> 
+                      <li className='nav-item'>
+                        <Link to={"/chat"} className="nav-link">
+                          ChatRoom
                         </Link>
                       </li> 
                       <li className="nav-item">
@@ -185,7 +195,8 @@ const App = () => {
                 <Route path="/student" element={<Student />} />
                 <Route exact path="/tutoring" element={<Tutoring />} />
                 <Route exact path="/profile" element={<Profile />} />
-                <Route path="/booking" element={<Booking />} />
+                <Route exact path="/booking" element={<Booking />} />
+                <Route exact path="/chat" element={<ChatRoomPage />} />
               </Routes>
               </div>
            </div>
@@ -196,8 +207,9 @@ const App = () => {
                 <Routes>
                   <Route exact path={"/"} element={<Tutor />} />
                   <Route path="/tutor" element={<Tutor  />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/booking" element={<Booking />} />
+                  <Route exact path="/profile" element={<Profile />} />
+                  <Route exact path="/booking" element={<Booking />} />
+                  <Route exact path="/chat" element={<ChatRoomPage />} />
                 </Routes>
                 </div>
               </div>

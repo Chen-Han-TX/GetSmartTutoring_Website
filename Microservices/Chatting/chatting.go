@@ -36,8 +36,11 @@ type User struct {
 }
 
 type ChatList struct {
-	StudentID string `json:"student_id" firestore:"StudentID"`
-	TutorID   string `json:"tutor_id" firestore:"TutorID"`
+	ChatId      string `json:"chat_id" firestore:"ChatID"`
+	StudentID   string `json:"student_id" firestore:"StudentID"`
+	TutorID     string `json:"tutor_id" firestore:"TutorID"`
+	StudentName string `json:"student_name" firestore:"StudentName"`
+	TutorName   string `json:"tutor_name" firestore:"TutorName"`
 	//message array contains senderID content and timestamp, can be null
 	Messages []Message `json:"messages" firestore:"Messages"`
 }
@@ -58,7 +61,7 @@ type Application struct {
 	HourlyRate       int    `json:"hourly_rate" firestore:"HourlyRate"`
 }
 
-var jwtKey = []byte("lhdrDMjhveyEVcvYFCgh1dBR2t7GM0YJ") // PLEASE DO NOT SHARE
+var jwtKey = []byte("lhdrDMjhveyEVcvYFCgh1dBR2t7GM0YK") // PLEASE DO NOT SHARE
 
 func verifyJWT(w http.ResponseWriter, r *http.Request) (Claims, error) {
 	c, err := r.Cookie("token")
@@ -187,11 +190,11 @@ func createChatList(w http.ResponseWriter, r *http.Request) {
 }
 
 func getChatList(w http.ResponseWriter, r *http.Request) {
-	claims, _ := verifyJWT(w, r)
-	// if err != nil {
-	// 	w.WriteHeader(http.StatusNotAcceptable)
-	// 	fmt.Println(err.Error())
-	// }
+	claims, err := verifyJWT(w, r)
+	if err != nil {
+		w.WriteHeader(http.StatusNotAcceptable)
+		fmt.Println(err.Error())
+	}
 	userid := claims.UserID
 
 	ctx := context.Background()

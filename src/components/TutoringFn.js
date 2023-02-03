@@ -271,19 +271,7 @@ const Tutoring = () => {
             </p>
             <p>
               <strong>Choose A Subject</strong> <br />
-              <Dropdown onSelect={handleSelect}>
-                <Dropdown.Toggle variant="success" id="dropdown-basic">
-                  {chosenSubject || "Select a subject"}
-                </Dropdown.Toggle>
-
-                <Dropdown.Menu>
-                  {clickedTutor.MatchedSubjectList.map((subject) => (
-                    <Dropdown.Item key={subject} eventKey={subject}>
-                      {subject}
-                    </Dropdown.Item>
-                  ))}
-                </Dropdown.Menu>
-              </Dropdown>
+       
             </p>
             <p>
               <strong>Choose Duration (min. 1 hour)</strong> <br />

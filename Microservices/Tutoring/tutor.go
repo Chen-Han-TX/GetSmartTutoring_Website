@@ -173,11 +173,6 @@ func matchTutors(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		keys := make([]string, 0, len(areaOfInterests))
-		for k := range areaOfInterests {
-			keys = append(keys, k)
-		}
-
 		query := tutors.Where("UserType", "==", "Tutor").Documents(ctx)
 		for {
 			var xTutor User
