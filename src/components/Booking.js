@@ -70,18 +70,18 @@ const Booking = () => {
             <Card.Text>
             Status: {app.application_status}
             </Card.Text>
-            {app.application_status === "Pending" && (
+            {app.application_status === "Pending" && userType==="Tutor" && (
               <>
                 <Button variant="success" onClick={() => handleAccept(app)}>Accept</Button>
                 <Button variant="danger" onClick={() => handleReject(app)}>Reject</Button>
               </>
-            )} {app.application_status === "Accepted" && (
+            )} {app.application_status === "Accepted"  && (
                 <>
                   <Button variant="success" disabled>
                     Accepted
                   </Button>
                 </>
-              )}{app.application_status === "Rejected" && (
+              )}{app.application_status === "Rejected"  && (
                 <>
                   <Button variant="danger" disabled>
                     Rejected
@@ -100,7 +100,12 @@ const Booking = () => {
     return(
         <div className="auth-inner">
             <header className="TutorHeader">
+              {userType==="Tutor" && (
                 <h4>Handle your bookings here!</h4>
+              )}{userType==="Student" && (
+                <h4>View your booking statuses!</h4>
+              )}
+                
                 <div id="example-collapse-text">
                     {listItemsApps}
                 </div>
