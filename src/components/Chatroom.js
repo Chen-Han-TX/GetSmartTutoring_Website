@@ -10,6 +10,11 @@ function ChatRoom({ chatDetail }) {
   const [message, setMessage] = useState('');
   
   const [messages, setMessages] = useState(chatDetail.messages);
+  const listGroupRef = useRef(null);
+
+  useEffect(() => {
+    listGroupRef.current.scrollTop = listGroupRef.current.scrollHeight;
+  }, [messages]);
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -51,14 +56,19 @@ function ChatRoom({ chatDetail }) {
         );
     }
   };
-
   return (
     <div className='auth-inner'>
+    {currentUser.user_type === "Student" && (
+      <strong>Chat with: {chatDetail.tutor_name}</strong>
+    )}
+    {currentUser.user_type === "Tutor" && (
+          <strong>Chat with: {chatDetail.student_name}</strong>
+    )}
     <Container>
       <Row className="">
         <Col  className="mx-auto">
           <div>
-            <ListGroup className="mb-3" style={{height: '50vh', maxHeight: '50vh', overflowY: 'auto' }}>
+            <ListGroup ref={listGroupRef} className="mb-3" style={{height: '50vh', maxHeight: '50vh', overflowY: 'auto' }}>
              { messages && (
                 messages.map((msg, index) => (
                   <ListGroup.Item 

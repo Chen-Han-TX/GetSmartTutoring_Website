@@ -122,7 +122,7 @@ const App = () => {
                       </li> 
                       <li className='nav-item'>
                         <Link to={"/chat"} className="nav-link">
-                          ChatRoom
+                          Chatrooms
                         </Link>
                       </li> 
                     <li className="nav-item">
@@ -160,7 +160,7 @@ const App = () => {
                       </li> 
                       <li className='nav-item'>
                         <Link to={"/chat"} className="nav-link">
-                          ChatRoom
+                          Chatrooms
                         </Link>
                       </li> 
                       <li className="nav-item">
