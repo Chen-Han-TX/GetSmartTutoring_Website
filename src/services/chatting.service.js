@@ -47,9 +47,14 @@ const getCurrentChatList = () => {
 
 const updateChatList = (chatId, message) => {
     var chatList = JSON.parse(localStorage.getItem("chatList"))
+
     for (var i = 0; i < chatList.length; i++) {
         if (chatList[i].chat_id === chatId) {
-            chatList[i].messages.push(message)
+            if (chatList[i].messages === null) {
+                chatList[i].messages = [message]
+            } else {
+                chatList[i].messages.push(message)
+            }
             localStorage.setItem("chatList", JSON.stringify(chatList))
             return chatList
         }
