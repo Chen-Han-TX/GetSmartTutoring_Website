@@ -13,6 +13,13 @@ let axiosConfig = {
     withCredentials : true,
 }
 
+const createChatList = () => {
+    return axios.post(CHATTING_URL + "createchatlist", axiosConfig).then(
+        (response) => {
+            return response;
+        }
+    )
+}
 
 
 const sendMsg = (opp_user_id, content) => {
@@ -28,14 +35,21 @@ const getChatList = () => {
     return axios.get(CHATTING_URL + "getlist", 
         axiosConfig)
             .then((response) => {
+                localStorage.setItem("chatList", JSON.stringify(response.data));
         return response;
       });
 };
 
+const getCurrentChatList = () => {
+    return JSON.parse(localStorage.getItem("chatList"));
+};
+
 
 const ChattingServices = {
+    createChatList,
     sendMsg, 
-    getChatList
+    getChatList,
+    getCurrentChatList
 }
 
   

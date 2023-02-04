@@ -24,11 +24,19 @@ function ChatRoom({ chatDetail }) {
             (response) => {
               console.log(response)
               if (response.status === 200) {
-                setMessages([...messages, {
+                if (messages === null) {
+                  setMessages([{
+                      "sender_id": currentUser.user_id,
+                      "content": message,
+                      "timestamp": Date.now()
+                    }])
+                } else {
+                  setMessages([...messages, {
                     "sender_id": currentUser.user_id,
                     "content": message,
                     "timestamp": Date.now()
                 }]);
+                }
                 setMessage('');
               } else {
                 console.log("response status: " + response.status);
@@ -51,18 +59,21 @@ function ChatRoom({ chatDetail }) {
         <Col  className="mx-auto">
           <div>
             <ListGroup className="mb-3" style={{height: '50vh', maxHeight: '50vh', overflowY: 'auto' }}>
-              {messages.map((msg, index) => (
-                <ListGroup.Item 
-                  key={index} 
-                  style={{ 
-                    wordWrap: 'break-word',
-                    backgroundColor: msg.sender_id === currentUser.user_id ? '#F2F2F2' : '#ADD8E6',
-                    textAlign:  msg.sender_id === currentUser.user_id ? 'right' : 'left'
-                  }}
-                >
-                  {msg.content}
-                </ListGroup.Item>
-              ))}
+             { messages && (
+                messages.map((msg, index) => (
+                  <ListGroup.Item 
+                    key={index} 
+                    style={{ 
+                      wordWrap: 'break-word',
+                      backgroundColor: msg.sender_id === currentUser.user_id ? '#F2F2F2' : '#ADD8E6',
+                      textAlign:  msg.sender_id === currentUser.user_id ? 'right' : 'left'
+                    }}
+                  >
+                    {msg.content}
+                  </ListGroup.Item>
+                ))
+              )}
+
             </ListGroup>
             <Form onSubmit={handleSubmit}>
               <Form.Group className="d-flex align-items-center">

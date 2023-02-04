@@ -11,6 +11,7 @@ import Student from "./components/Student";
 import Tutoring from "./components/TutoringFn";
 import Booking from "./components/Booking";
 import ChatRoomPage from './components/ChatroomPage';
+import ChattingServices from './services/chatting.service';
 
 import '../node_modules/bootstrap/dist/css/bootstrap.min.css'
 
@@ -32,6 +33,7 @@ const App = () => {
 
     if (user) {
       setCurrentUser(user);
+      ChattingServices.getChatList();
 
       if (user.user_type === "Student") {
         setShowStudent(true)
