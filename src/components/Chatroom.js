@@ -30,7 +30,7 @@ function ChatRoom({ chatDetail }) {
         } else {
             opp_user = chatDetail.tutor_id
         }
-        ChattingServices.sendMsg(opp_user, message).then(
+        ChattingServices.sendMsg(currentUser.user_id, opp_user, currentUser.user_type, message).then(
             (response) => {
               console.log(response)
               if (response.status === 200) {

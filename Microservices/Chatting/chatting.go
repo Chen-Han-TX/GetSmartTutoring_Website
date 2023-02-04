@@ -4,25 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"sort"
 	"time"
 
 	"log"
 	"net/http"
 
 	firebase "firebase.google.com/go"
-	"github.com/golang-jwt/jwt/v4"
 	"github.com/gorilla/mux"
 	"google.golang.org/api/option"
 )
-
-// Struct for JWT Token stored in the Cookie
-type Claims struct {
-	EmailAddress string `json:"email_address"`
-	UserType     string `json:"user_type"`
-	UserID       string `json:"user_id"`
-	jwt.RegisteredClaims
-}
 
 type User struct {
 	UserID         string              `json:"user_id" firestore:"UserID"`
@@ -64,49 +54,7 @@ type Application struct {
 	HourlyRate       int    `json:"hourly_rate" firestore:"HourlyRate"`
 }
 
-var jwtKey = []byte("lhdrDMjhveyEVcvYFCgh1dBR2t7GM0YK") // PLEASE DO NOT SHARE
-
-func verifyJWT(w http.ResponseWriter, r *http.Request) (Claims, error) {
-	c, err := r.Cookie("token")
-	if err != nil {
-		if err == http.ErrNoCookie {
-			// If the cookie is not set, return an unauthorized status
-			w.WriteHeader(http.StatusUnauthorized)
-			return Claims{}, err
-		}
-		// For any other type of error, return a bad request status
-		w.WriteHeader(http.StatusBadRequest)
-		return Claims{}, err
-	}
-
-	// Get the JWT string from the cookie
-	tknStr := c.Value
-	// Initialize a new instance of `Claims`
-	claims := &Claims{}
-	// Parse the JWT string and store the result in `claims`.
-	// Note that we are passing the key in this method as well. This method will return an error
-	// if the token is invalid (if it has expired according to the expiry time we set on sign in),
-	// or if the signature does not match
-	tkn, err := jwt.ParseWithClaims(tknStr, claims, func(token *jwt.Token) (interface{}, error) {
-		return jwtKey, nil
-	})
-	if err != nil {
-		if err == jwt.ErrSignatureInvalid {
-			w.WriteHeader(http.StatusUnauthorized)
-			return *claims, err
-		}
-		w.WriteHeader(http.StatusBadRequest)
-		return *claims, err
-	}
-
-	if !tkn.Valid {
-		w.WriteHeader(http.StatusUnauthorized)
-		return *claims, err
-	}
-	// Token is valid
-
-	return *claims, nil
-}
+var cred_file = "eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json"
 
 func main() {
 	router := mux.NewRouter()
@@ -114,11 +62,11 @@ func main() {
 	//Create a chat list if the tutor accepts the application (when the application status is changed to "accepted")
 	router.HandleFunc("/api/createchatlist", createChatList).Methods("POST", "OPTIONS")
 	//For the user, retrieve all the chatlist that he is involved in
-	router.HandleFunc("/api/getlist", getChatList).Methods("GET", "OPTIONS")
-	//For the user, retrieve all the messages for a specific chat in a chatlist
-	router.HandleFunc("/api/getmessages/{userid_opp}", getMessages).Methods("GET", "OPTIONS")
+	router.HandleFunc("/api/getlist/{user_id}/{user_type}", getChatList).Methods("GET", "OPTIONS")
+	//For the user, retrieve all the messages for a specific chat in a chatlist (Chen Han: we didnt really use this in front-end so..)
+	//router.HandleFunc("/api/getmessages/{userid_opp}", getMessages).Methods("GET", "OPTIONS")
 	//For the user, send a message to a chat in a chatlist
-	router.HandleFunc("/api/sendmessages/{userid_opp}", sendMessage).Methods("POST", "OPTIONS")
+	router.HandleFunc("/api/sendmessages/{user_id}/{userid_opp}/{user_type}", sendMessage).Methods("POST", "OPTIONS")
 	fmt.Println("Listening at port 5053")
 	log.Fatal(http.ListenAndServe(":5053", router))
 
@@ -127,7 +75,7 @@ func main() {
 // create a chat for a student and a tutor once the applicaton became success
 func createChatList(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
-	sa := option.WithCredentialsFile("/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
+	sa := option.WithCredentialsFile(cred_file)
 
 	app, err := firebase.NewApp(ctx, nil, sa)
 	if err != nil {
@@ -204,15 +152,12 @@ func createChatList(w http.ResponseWriter, r *http.Request) {
 }
 
 func getChatList(w http.ResponseWriter, r *http.Request) {
-	claims, err := verifyJWT(w, r)
-	if err != nil {
-		w.WriteHeader(http.StatusNotAcceptable)
-		fmt.Println(err.Error())
-	}
-	userid := claims.UserID
+	params := mux.Vars(r)
+	user_id := params["user_id"]
+	user_type := params["user_type"]
 
 	ctx := context.Background()
-	sa := option.WithCredentialsFile("/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
+	sa := option.WithCredentialsFile(cred_file)
 
 	app, err := firebase.NewApp(ctx, nil, sa)
 	if err != nil {
@@ -230,8 +175,8 @@ func getChatList(w http.ResponseWriter, r *http.Request) {
 	} else if r.Method == "GET" {
 		chatList := []ChatList{}
 		//get the messages from the database, user data from jwt
-		if claims.UserType == "Tutor" {
-			iter := client.Collection("ChatList").Where("TutorID", "==", userid).Documents(ctx)
+		if user_type == "Tutor" {
+			iter := client.Collection("ChatList").Where("TutorID", "==", user_id).Documents(ctx)
 			for {
 				doc, err := iter.Next()
 				if err != nil {
@@ -242,8 +187,8 @@ func getChatList(w http.ResponseWriter, r *http.Request) {
 				chatList = append(chatList, chatListData)
 			}
 		}
-		if claims.UserType == "Student" {
-			iter := client.Collection("ChatList").Where("StudentID", "==", userid).Documents(ctx)
+		if user_type == "Student" {
+			iter := client.Collection("ChatList").Where("StudentID", "==", user_id).Documents(ctx)
 			for {
 				doc, err := iter.Next()
 				if err != nil {
@@ -267,6 +212,7 @@ func getChatList(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+/*
 // write the getmessage function, get all the messages from the firebase firestore in Message struct. Sort the messages by timestamp
 func getMessages(w http.ResponseWriter, r *http.Request) {
 	claims, _ := verifyJWT(w, r)
@@ -280,7 +226,7 @@ func getMessages(w http.ResponseWriter, r *http.Request) {
 	anotherUserId := vars["userid_opp"]
 
 	ctx := context.Background()
-	sa := option.WithCredentialsFile("/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
+	sa := option.WithCredentialsFile(cred_file)
 
 	app, err := firebase.NewApp(ctx, nil, sa)
 	if err != nil {
@@ -354,20 +300,16 @@ func getMessages(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 }
+*/
 
 func sendMessage(w http.ResponseWriter, r *http.Request) {
-	claims, _ := verifyJWT(w, r)
-	// if err != nil {
-	// 	w.WriteHeader(http.StatusNotAcceptable)
-	// 	fmt.Println(err.Error())
-	// }
-	userid := claims.UserID
-
 	vars := mux.Vars(r)
+	user_id := vars["user_id"]
 	anotherUserId := vars["userid_opp"]
+	user_type := vars["user_type"]
 
 	ctx := context.Background()
-	sa := option.WithCredentialsFile("/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
+	sa := option.WithCredentialsFile(cred_file)
 
 	app, err := firebase.NewApp(ctx, nil, sa)
 	if err != nil {
@@ -386,11 +328,11 @@ func sendMessage(w http.ResponseWriter, r *http.Request) {
 		var message Message
 		_ = json.NewDecoder(r.Body).Decode(&message)
 		// message.Content = strings.TrimSpace(message.Content)
-		message.SenderID = userid
+		message.SenderID = user_id
 		message.Timestamp = time.Now().Unix()
 		//if the user is a student
-		if claims.UserType == "Student" {
-			iter := client.Collection("ChatList").Where("StudentID", "==", userid).Where("TutorID", "==", anotherUserId).Documents(ctx)
+		if user_type == "Student" {
+			iter := client.Collection("ChatList").Where("StudentID", "==", user_id).Where("TutorID", "==", anotherUserId).Documents(ctx)
 
 			for {
 				doc, err := iter.Next()
@@ -407,8 +349,8 @@ func sendMessage(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		//if the user is a tutor
-		if claims.UserType == "Tutor" {
-			iter := client.Collection("ChatList").Where("TutorID", "==", userid).Where("StudentID", "==", anotherUserId).Documents(ctx)
+		if user_type == "Tutor" {
+			iter := client.Collection("ChatList").Where("TutorID", "==", user_id).Where("StudentID", "==", anotherUserId).Documents(ctx)
 			for {
 				doc, err := iter.Next()
 				if err != nil {

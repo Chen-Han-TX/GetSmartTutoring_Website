@@ -22,24 +22,25 @@ const createChatList = () => {
     )
 }
 
-
-const sendMsg = (opp_user_id, content) => {
-    return axios.post(CHATTING_URL + "sendmessages/" + opp_user_id, { "content": content},
-        axiosConfig)
-            .then((response) => {
-        return response;
-      });
-};
-
-
-const getChatList = () => {
-    return axios.get(CHATTING_URL + "getlist", 
+ 
+const getChatList = (user_id, user_type) => {
+    return axios.get(CHATTING_URL + "getlist/" + user_id + "/" + user_type, 
         axiosConfig)
             .then((response) => {
                 localStorage.setItem("chatList", JSON.stringify(response.data));
         return response;
       });
 };
+
+const sendMsg = (user_id, opp_user_id, user_type, content) => {
+    return axios.post(CHATTING_URL + "sendmessages/" + user_id + "/" + opp_user_id + "/" + user_type, { "content": content},
+        axiosConfig)
+            .then((response) => {
+        return response;
+      });
+};
+
+
 
 const getCurrentChatList = () => {
     return JSON.parse(localStorage.getItem("chatList"));

@@ -33,7 +33,7 @@ const App = () => {
 
     if (user) {
       setCurrentUser(user);
-      ChattingServices.getChatList();
+      ChattingServices.getChatList(user.user_id, user.user_type);
 
       if (user.user_type === "Student") {
         setShowStudent(true)

@@ -29,16 +29,16 @@ const applyForTutor = (application) => {
       });
 };
 
-const getApplications = () => {
-    return axios.get(TUTORING_URL + "getapplications", 
+const getApplications = (user_id, user_type) => {
+    return axios.get(TUTORING_URL + "getapplications/" + user_id + "/" + user_type, 
         axiosConfig)
             .then((response) => {
         return response.data;
       });
 };
 
-const handleApplications = (application) => {
-    return axios.post(TUTORING_URL + "handleapplications", application,
+const handleApplications = (user_type, application) => {
+    return axios.post(TUTORING_URL + "handleapplications/" + user_type, application,
         axiosConfig)
             .then((response) => {
         return response;
