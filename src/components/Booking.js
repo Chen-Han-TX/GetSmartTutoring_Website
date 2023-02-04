@@ -1,6 +1,7 @@
 import AuthService from "../services/auth.service";
 import React, { useState, useRef, useEffect } from "react";
 import TutoringService from "../services/tutoring.service";
+import ChattingServices from "../services/chatting.service";
 import Card from 'react-bootstrap/Card';
 import Button from 'react-bootstrap/Button';
 const Booking = () => {
@@ -29,11 +30,29 @@ const Booking = () => {
         TutoringService.handleApplications(app).then(
             (response) => {
               alert("Tutoring application has been accepted!")
-              window.location.reload(true)
+              ChattingServices.createChatList().then(
+                (response) => {
+                  console.log(response)
+                  if (response.data.length > 0) {
+                    alert("A new chatroom has been created for you!")
+                    window.location.href = "/chat"
+                  } else {
+                    window.location.reload(true)
+                  }
+                },
+                (error) => {
+                  if (error.response.status == 404){
+                    console.log(error)
+                    alert(error)
+                  }
+                }
+              );
+
             },
             (error) => {
               if (error.response.status == 404){
                 console.log(error)
+                alert(error)
               }
             }
           );

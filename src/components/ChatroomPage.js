@@ -9,8 +9,10 @@ function ChatRoomPage() {
   const currentUser = AuthService.getCurrentUser();
   const [chatrooms, setChatrooms] = useState(ChattingServices.getCurrentChatList());
 
-  const [activeChatroom, setActiveChatroom] = useState(chatrooms[0]);
-
+  const [activeChatroom, setActiveChatroom] = useState(
+    chatrooms && chatrooms.length > 0 ? chatrooms[0] : null
+  );
+  
   const changeRoom = (chatroom) => {
     ChattingServices.getChatList().then(
       (response) => {

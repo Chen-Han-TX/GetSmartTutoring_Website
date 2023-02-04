@@ -19,6 +19,11 @@ function ChatRoom({ chatDetail }) {
   const handleSubmit = (event) => {
     event.preventDefault();
     if (message !== "") {
+          ChattingServices.updateChatList(chatDetail.chat_id, {
+            "sender_id": currentUser.user_id,
+            "content": message,
+            "timestamp": Date.now()
+        })
         var opp_user = ""
         if (currentUser.user_type === "Tutor") {
             opp_user = chatDetail.student_id

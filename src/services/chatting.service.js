@@ -14,7 +14,8 @@ let axiosConfig = {
 }
 
 const createChatList = () => {
-    return axios.post(CHATTING_URL + "createchatlist", axiosConfig).then(
+    return axios.post(CHATTING_URL + "createchatlist",  {},
+    axiosConfig).then(
         (response) => {
             return response;
         }
@@ -44,12 +45,24 @@ const getCurrentChatList = () => {
     return JSON.parse(localStorage.getItem("chatList"));
 };
 
+const updateChatList = (chatId, message) => {
+    var chatList = JSON.parse(localStorage.getItem("chatList"))
+    for (var i = 0; i < chatList.length; i++) {
+        if (chatList[i].chat_id === chatId) {
+            chatList[i].messages.push(message)
+            localStorage.setItem("chatList", JSON.stringify(chatList))
+            return chatList
+        }
+    }
+}
+
 
 const ChattingServices = {
     createChatList,
     sendMsg, 
     getChatList,
-    getCurrentChatList
+    getCurrentChatList,
+    updateChatList
 }
 
   
