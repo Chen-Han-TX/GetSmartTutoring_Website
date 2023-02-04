@@ -7,10 +7,30 @@ import ChattingServices from '../services/chatting.service';
 function ChatRoomPage() {
 
   const currentUser = AuthService.getCurrentUser();
-  const [chatrooms, setChatRooms] = useState([]);
+  const [chatrooms, setChatrooms] = useState(ChattingServices.getCurrentChatList());
 
-  const [activeChatroom, setActiveChatroom] = useState(null);
-
+  const [activeChatroom, setActiveChatroom] = useState(
+    chatrooms && chatrooms.length > 0 ? chatrooms[0] : null
+  );
+  
+  const changeRoom = (chatroom) => {
+    ChattingServices.getChatList().then(
+      (response) => {
+        setChatrooms(response.data)
+        if (chatroom.messages === null){
+          chatroom.messages = []
+        }
+        setActiveChatroom(chatroom)
+      },
+      (error) => {
+        if (error.response.status == 404){
+          console.log(error)
+          alert(error)
+        }
+      }
+    );
+  }
+  /*
   useEffect(() => {
     ChattingServices.getChatList().then(
         (response) => {
@@ -26,10 +46,11 @@ function ChatRoomPage() {
       );
 
   }, [chatrooms]);
-
+  */
 return (
  <div className='auth-inner2' style={{textAlign: "center"}}>
-    {activeChatroom && (
+
+    {activeChatroom ? (
 
     <Container fluid>
     <Row>
@@ -49,7 +70,7 @@ return (
             {chatrooms.map((chatroom) => (
                 <Dropdown.Item
                 key={chatroom.chat_id}
-                onClick={() => setActiveChatroom(chatroom)}
+                onClick={() => changeRoom(chatroom)}
                 >
                 {currentUser.user_type === "Tutor" && (
                     chatroom.student_name
@@ -74,6 +95,10 @@ return (
     </Container>
 
 
+    ) : (
+      <div>
+        No Chatroom found!
+        </div>
     )}
     </div>
   );

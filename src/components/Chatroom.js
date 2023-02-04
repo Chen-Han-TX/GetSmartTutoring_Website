@@ -10,10 +10,20 @@ function ChatRoom({ chatDetail }) {
   const [message, setMessage] = useState('');
   
   const [messages, setMessages] = useState(chatDetail.messages);
+  const listGroupRef = useRef(null);
+
+  useEffect(() => {
+    listGroupRef.current.scrollTop = listGroupRef.current.scrollHeight;
+  }, [messages]);
 
   const handleSubmit = (event) => {
     event.preventDefault();
     if (message !== "") {
+          ChattingServices.updateChatList(chatDetail.chat_id, {
+            "sender_id": currentUser.user_id,
+            "content": message,
+            "timestamp": Date.now()
+        })
         var opp_user = ""
         if (currentUser.user_type === "Tutor") {
             opp_user = chatDetail.student_id
@@ -24,11 +34,19 @@ function ChatRoom({ chatDetail }) {
             (response) => {
               console.log(response)
               if (response.status === 200) {
-                setMessages([...messages, {
+                if (messages === null) {
+                  setMessages([{
+                      "sender_id": currentUser.user_id,
+                      "content": message,
+                      "timestamp": Date.now()
+                    }])
+                } else {
+                  setMessages([...messages, {
                     "sender_id": currentUser.user_id,
                     "content": message,
                     "timestamp": Date.now()
                 }]);
+                }
                 setMessage('');
               } else {
                 console.log("response status: " + response.status);
@@ -43,26 +61,34 @@ function ChatRoom({ chatDetail }) {
         );
     }
   };
-
   return (
     <div className='auth-inner'>
+    {currentUser.user_type === "Student" && (
+      <strong>Chat with: {chatDetail.tutor_name}</strong>
+    )}
+    {currentUser.user_type === "Tutor" && (
+          <strong>Chat with: {chatDetail.student_name}</strong>
+    )}
     <Container>
       <Row className="">
         <Col  className="mx-auto">
           <div>
-            <ListGroup className="mb-3" style={{height: '50vh', maxHeight: '50vh', overflowY: 'auto' }}>
-              {messages.map((msg, index) => (
-                <ListGroup.Item 
-                  key={index} 
-                  style={{ 
-                    wordWrap: 'break-word',
-                    backgroundColor: msg.sender_id === currentUser.user_id ? '#F2F2F2' : '#ADD8E6',
-                    textAlign:  msg.sender_id === currentUser.user_id ? 'right' : 'left'
-                  }}
-                >
-                  {msg.content}
-                </ListGroup.Item>
-              ))}
+            <ListGroup ref={listGroupRef} className="mb-3" style={{height: '50vh', maxHeight: '50vh', overflowY: 'auto' }}>
+             { messages && (
+                messages.map((msg, index) => (
+                  <ListGroup.Item 
+                    key={index} 
+                    style={{ 
+                      wordWrap: 'break-word',
+                      backgroundColor: msg.sender_id === currentUser.user_id ? '#F2F2F2' : '#ADD8E6',
+                      textAlign:  msg.sender_id === currentUser.user_id ? 'right' : 'left'
+                    }}
+                  >
+                    {msg.content}
+                  </ListGroup.Item>
+                ))
+              )}
+
             </ListGroup>
             <Form onSubmit={handleSubmit}>
               <Form.Group className="d-flex align-items-center">
