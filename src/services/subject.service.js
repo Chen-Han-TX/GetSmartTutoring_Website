@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const SUB_URL = "http://localhost:5052/api/getsubjects/"
+const SUB_URL = "http://localhost:5051/api/getsubjects/"
 
 axios.defaults.withCredentials = true
 

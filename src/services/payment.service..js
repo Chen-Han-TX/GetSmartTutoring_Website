@@ -1,7 +1,7 @@
 import { upload } from "@testing-library/user-event/dist/upload";
 import axios from "axios";
 
-const PAYMENT_URL = "http://localhost:5053/api/"
+const PAYMENT_URL = "http://localhost:5054/api/"
 
 axios.defaults.withCredentials = true
 

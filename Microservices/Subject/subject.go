@@ -29,7 +29,7 @@ func Subject(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 
 	// Use a service account
-	sa := option.WithCredentialsFile("../eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
+	sa := option.WithCredentialsFile("/app/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
 	app, err := firebase.NewApp(ctx, nil, sa)
 	if err != nil {
 		log.Fatalln(err)
@@ -91,6 +91,6 @@ func main() {
 
 	router.HandleFunc("/api/getsubjects/{type}", Subject).Methods("GET", "OPTIONS")
 
-	fmt.Println("Listening at port 5052")
-	log.Fatal(http.ListenAndServe(":5052", router))
+	fmt.Println("Listening at port 5051")
+	log.Fatal(http.ListenAndServe(":5051", router))
 }

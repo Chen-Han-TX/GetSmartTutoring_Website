@@ -119,8 +119,8 @@ func main() {
 	router.HandleFunc("/api/getmessages/{userid_opp}", getMessages).Methods("GET", "OPTIONS")
 	//For the user, send a message to a chat in a chatlist
 	router.HandleFunc("/api/sendmessages/{userid_opp}", sendMessage).Methods("POST", "OPTIONS")
-	fmt.Println("Listening at port 5070")
-	log.Fatal(http.ListenAndServe(":5070", router))
+	fmt.Println("Listening at port 5053")
+	log.Fatal(http.ListenAndServe(":5053", router))
 
 }
 

@@ -55,8 +55,8 @@ func main() {
 	//router.HandleFunc("/api/payment/", SignUp).Methods("POST", "OPTIONS")
 	router.HandleFunc("/api/payment", GetPayment).Methods("POST", "OPTIONS")
 
-	fmt.Println("Listening at port 5053")
-	log.Fatal(http.ListenAndServe(":5053", router))
+	fmt.Println("Listening at port 5054")
+	log.Fatal(http.ListenAndServe(":5054", router))
 }
 
 // ======= HANDLER FUNCTIONS ========
