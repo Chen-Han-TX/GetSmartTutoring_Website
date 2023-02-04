@@ -14,19 +14,10 @@ import (
 	"cloud.google.com/go/firestore"
 	firebase "firebase.google.com/go"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/golang-jwt/jwt/v4"
 	"github.com/gorilla/mux"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 )
-
-// Struct for JWT Token stored in the Cookie
-type Claims struct {
-	EmailAddress string `json:"email_address"`
-	UserType     string `json:"user_type"`
-	UserID       string `json:"user_id"`
-	jwt.RegisteredClaims
-}
 
 type User struct {
 	UserID         string                       `json:"user_id" firestore:"UserID"`
@@ -53,57 +44,15 @@ type Application struct {
 	HourlyRate       int    `json:"hourly_rate" firestore:"HourlyRate"`
 }
 
-var jwtKey = []byte("lhdrDMjhveyEVcvYFCgh1dBR2t7GM0YK") // PLEASE DO NOT SHARE
-
-func verifyJWT(w http.ResponseWriter, r *http.Request) (Claims, error) {
-	c, err := r.Cookie("token")
-	if err != nil {
-		if err == http.ErrNoCookie {
-			// If the cookie is not set, return an unauthorized status
-			w.WriteHeader(http.StatusUnauthorized)
-			return Claims{}, err
-		}
-		// For any other type of error, return a bad request status
-		w.WriteHeader(http.StatusBadRequest)
-		return Claims{}, err
-	}
-
-	// Get the JWT string from the cookie
-	tknStr := c.Value
-	// Initialize a new instance of `Claims`
-	claims := &Claims{}
-	// Parse the JWT string and store the result in `claims`.
-	// Note that we are passing the key in this method as well. This method will return an error
-	// if the token is invalid (if it has expired according to the expiry time we set on sign in),
-	// or if the signature does not match
-	tkn, err := jwt.ParseWithClaims(tknStr, claims, func(token *jwt.Token) (interface{}, error) {
-		return jwtKey, nil
-	})
-	if err != nil {
-		if err == jwt.ErrSignatureInvalid {
-			w.WriteHeader(http.StatusUnauthorized)
-			return *claims, err
-		}
-		w.WriteHeader(http.StatusBadRequest)
-		return *claims, err
-	}
-
-	if !tkn.Valid {
-		w.WriteHeader(http.StatusUnauthorized)
-		return *claims, err
-	}
-	// Token is valid
-
-	return *claims, nil
-}
+var cred_file = "eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json"
 
 func main() {
 	router := mux.NewRouter()
 
 	router.HandleFunc("/api/tutoring/matchtutors", matchTutors).Methods("POST", "OPTIONS")
 	router.HandleFunc("/api/tutoring/apply", applyForTutor).Methods("POST", "OPTIONS")
-	router.HandleFunc("/api/tutoring/getapplications", getApplications).Methods("GET", "OPTIONS")
-	router.HandleFunc("/api/tutoring/handleapplications", handleApplications).Methods("POST", "OPTIONS")
+	router.HandleFunc("/api/tutoring/getapplications/{user_id}/{user_type}", getApplications).Methods("GET", "OPTIONS")
+	router.HandleFunc("/api/tutoring/handleapplications/{user_type}", handleApplications).Methods("POST", "OPTIONS")
 	//router.HandleFunc("/api/user/getuser", GetUser).Methods("GET", "PUT", "OPTIONS")
 	//router.HandleFunc("/api/user/password", UpdatePassword).Methods("PUT", "OPTIONS")
 
@@ -136,14 +85,7 @@ func main() {
 
 func matchTutors(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
-	sa := option.WithCredentialsFile("/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
-	// Verify JWT token to continue using
-	// _, err := verifyJWT(w, r)
-	// if err != nil {
-	// 	w.WriteHeader(http.StatusNotAcceptable) //406
-	// 	json.NewEncoder(w).Encode(err.Error())
-	// 	return
-	// }
+	sa := option.WithCredentialsFile(cred_file)
 
 	// ----Firestore----
 	app2, err := firebase.NewApp(ctx, nil, sa)
@@ -249,7 +191,7 @@ func matchTutors(w http.ResponseWriter, r *http.Request) {
 
 func applyForTutor(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
-	sa := option.WithCredentialsFile("/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
+	sa := option.WithCredentialsFile(cred_file)
 
 	// ----Firestore----
 	app2, err := firebase.NewApp(ctx, nil, sa)
@@ -294,15 +236,13 @@ func applyForTutor(w http.ResponseWriter, r *http.Request) {
 }
 
 func getApplications(w http.ResponseWriter, r *http.Request) {
-	ctx := context.Background()
-	sa := option.WithCredentialsFile("/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
 
-	claims, err := verifyJWT(w, r)
-	if err != nil {
-		w.WriteHeader(http.StatusNotAcceptable) //406
-		json.NewEncoder(w).Encode(err.Error())
-		return
-	}
+	params := mux.Vars(r)
+	user_id := params["user_id"]
+	user_type := params["user_type"]
+
+	ctx := context.Background()
+	sa := option.WithCredentialsFile(cred_file)
 
 	// ----Firestore----
 	app2, err := firebase.NewApp(ctx, nil, sa)
@@ -316,14 +256,14 @@ func getApplications(w http.ResponseWriter, r *http.Request) {
 	}
 	defer client2.Close()
 
-	if claims.UserType == "Student" {
+	if user_type == "Student" {
 		if r.Method == "OPTIONS" {
 			w.WriteHeader(http.StatusOK) // 200
 			return
 		} else if r.Method == "GET" {
 			var applicationList []Application
 			allApplications := client2.Collection("Applications")
-			query := allApplications.Where("StudentID", "==", claims.UserID).Documents(ctx)
+			query := allApplications.Where("StudentID", "==", user_id).Documents(ctx)
 			for {
 				var xApplication Application
 				doc, err := query.Next()
@@ -355,7 +295,7 @@ func getApplications(w http.ResponseWriter, r *http.Request) {
 		} else if r.Method == "GET" {
 			var applicationList []Application
 			allApplications := client2.Collection("Applications")
-			query := allApplications.Where("TutorID", "==", claims.UserID).Documents(ctx)
+			query := allApplications.Where("TutorID", "==", user_id).Documents(ctx)
 			for {
 				var xApplication Application
 				doc, err := query.Next()
@@ -384,15 +324,11 @@ func getApplications(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleApplications(w http.ResponseWriter, r *http.Request) {
-	ctx := context.Background()
-	sa := option.WithCredentialsFile("/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
+	params := mux.Vars(r)
+	user_type := params["user_type"]
 
-	claims, err := verifyJWT(w, r)
-	if err != nil {
-		w.WriteHeader(http.StatusNotAcceptable) //406
-		json.NewEncoder(w).Encode(err.Error())
-		return
-	}
+	ctx := context.Background()
+	sa := option.WithCredentialsFile(cred_file)
 
 	// ----Firestore----
 	app2, err := firebase.NewApp(ctx, nil, sa)
@@ -406,7 +342,7 @@ func handleApplications(w http.ResponseWriter, r *http.Request) {
 	}
 	defer client2.Close()
 
-	if claims.UserType != "Tutor" {
+	if user_type != "Tutor" {
 		w.Header().Set("Content-type", "text/plain")
 		w.WriteHeader(http.StatusForbidden)
 		fmt.Fprintf(w, "Error - This method is only for tutors to use!")

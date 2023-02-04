@@ -14,7 +14,7 @@ function ChatRoomPage() {
   );
   
   const changeRoom = (chatroom) => {
-    ChattingServices.getChatList().then(
+    ChattingServices.getChatList(currentUser.user_id, currentUser.user_type).then(
       (response) => {
         setChatrooms(response.data)
         if (chatroom.messages === null){

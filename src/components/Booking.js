@@ -28,7 +28,7 @@ const Booking = () => {
     }
 
     useEffect(() => {
-        TutoringService.getApplications().then(
+        TutoringService.getApplications(currentUser.user_id, currentUser.user_type).then(
             (response) => {
               setAppList(response)
               console.log(response)
@@ -44,7 +44,7 @@ const Booking = () => {
 
       const handleAccept = app => {
         app.application_status = "Accepted"
-        TutoringService.handleApplications(app).then(
+        TutoringService.handleApplications(currentUser.user_type, app).then(
             (response) => {
               alert("Tutoring application has been accepted!")
               ChattingServices.createChatList().then(
@@ -77,7 +77,7 @@ const Booking = () => {
       
       const handleReject = app => {
         app.application_status = "Rejected"
-        TutoringService.handleApplications(app).then(
+        TutoringService.handleApplications(currentUser.user_type, app).then(
             (response) => {
               alert("Tutoring application has been rejected!")
               window.location.reload(true)

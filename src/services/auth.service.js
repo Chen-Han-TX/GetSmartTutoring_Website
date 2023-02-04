@@ -13,8 +13,6 @@ let axiosConfig = {
     },
     withCredentials : true,
 }
-
-
 const register_student = (name, email, password, school, subjects) => {
     return axios.post(AUTH_URL + "signup/student", {
         "name" : name,
@@ -26,10 +24,7 @@ const register_student = (name, email, password, school, subjects) => {
 };
 
 
-
 const register_tutor = (name, email, password, hourlyRate, availability, subjects, uploadedFiles) => {
-
-
     return axios.post(AUTH_URL + "signup/tutor", {
         "name" : name,
         "email": email,
@@ -62,13 +57,8 @@ const login = (email_address, password) => {
   
 const logout = () => {
     localStorage.clear();
-
-    return axios.get(AUTH_URL + "logout", axiosConfig)
-    .then((response) => {
-        return response.data;
-    });
 };
-  
+
 
 const getCurrentUser = () => {
     return JSON.parse(localStorage.getItem("user"));

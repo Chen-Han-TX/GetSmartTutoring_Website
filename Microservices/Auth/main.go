@@ -8,12 +8,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"time"
 
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/golang-jwt/jwt/v4"
 	"github.com/gorilla/mux"
 	"google.golang.org/api/option"
 )
@@ -39,59 +37,7 @@ type User struct {
 	CertOfEvidence []string                     `json:"cert_of_evidence,omitempty" firestore:"CertOfEvidence,omitempty"`
 }
 
-// Create a struct that can be encoded into a JWT
-// Please ONlY Store insensitive data
-type Claims struct {
-	EmailAddress string `json:"email_address"`
-	UserType     string `json:"user_type"`
-	UserID       string `json:"user_id"`
-	jwt.RegisteredClaims
-}
-
-// ====== GLOBAL VARIABLES ========
-var jwtKey = []byte("lhdrDMjhveyEVcvYFCgh1dBR2t7GM0YK") // A secure JWT Token for decoding, DO NOT SHARE
-
-func verifyJWT(w http.ResponseWriter, r *http.Request) (Claims, error) {
-	c, err := r.Cookie("token")
-	if err != nil {
-		if err == http.ErrNoCookie {
-			// If the cookie is not set, return an unauthorized status
-			w.WriteHeader(http.StatusUnauthorized)
-			return Claims{}, err
-		}
-		// For any other type of error, return a bad request status
-		w.WriteHeader(http.StatusBadRequest)
-		return Claims{}, err
-	}
-
-	// Get the JWT string from the cookie
-	tknStr := c.Value
-	// Initialize a new instance of `Claims`
-	claims := &Claims{}
-	// Parse the JWT string and store the result in `claims`.
-	// Note that we are passing the key in this method as well. This method will return an error
-	// if the token is invalid (if it has expired according to the expiry time we set on sign in),
-	// or if the signature does not match
-	tkn, err := jwt.ParseWithClaims(tknStr, claims, func(token *jwt.Token) (interface{}, error) {
-		return jwtKey, nil
-	})
-	if err != nil {
-		if err == jwt.ErrSignatureInvalid {
-			w.WriteHeader(http.StatusUnauthorized)
-			return *claims, err
-		}
-		w.WriteHeader(http.StatusBadRequest)
-		return *claims, err
-	}
-
-	if !tkn.Valid {
-		w.WriteHeader(http.StatusUnauthorized)
-		return *claims, err
-	}
-	// Token is valid
-
-	return *claims, nil
-}
+var cred_file = "eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json"
 
 // ========= HANDLER FUNCTIONS ==========
 
@@ -108,7 +54,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 	user_type := params["user_type"]
 
 	ctx := context.Background()
-	sa := option.WithCredentialsFile("/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
+	sa := option.WithCredentialsFile(cred_file)
 
 	// ---Authentication--
 	app, err := firebase.NewApp(ctx, nil, sa)
@@ -195,7 +141,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	var user User
 
 	ctx := context.Background()
-	sa := option.WithCredentialsFile("/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
+	sa := option.WithCredentialsFile(cred_file)
 
 	// ---Authentication--
 	app, err := firebase.NewApp(ctx, nil, sa)
@@ -258,45 +204,6 @@ func Login(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Now set the JWT token and the cookie
-		// Declare the expiration time of the token to 1hr
-
-		expirationTime := time.Now().Add(12 * time.Hour)
-
-		claims := &Claims{
-			EmailAddress: creds.Email,
-			UserType:     user.UserType,
-			UserID:       user.UserID,
-			RegisteredClaims: jwt.RegisteredClaims{
-				// In JWT, the expiry time is expressed as unix milliseconds
-				ExpiresAt: jwt.NewNumericDate(expirationTime),
-			},
-		}
-
-		// Declare the token with the algorithm used for signing, and the claims
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-		// Create the JWT string
-		tokenString, err := token.SignedString(jwtKey)
-		if err != nil {
-			// If there is an error in creating the JWT return an internal server error
-			w.WriteHeader(http.StatusInternalServerError) //500
-			return
-		}
-
-		// Finally, we set the client cookie for "token" as the JWT we just generated
-		// we also set an expiry time which is the same as the token itself
-		http.SetCookie(w, &http.Cookie{
-			Name:     "token",
-			Value:    tokenString,
-			Expires:  expirationTime,
-			Path:     "/",
-			HttpOnly: true,
-		})
-
-		// Remove the password
-		user.Password = ""
-
 		// Return user object
 		json.NewEncoder(w).Encode(user)
 		return
@@ -309,21 +216,52 @@ func Login(w http.ResponseWriter, r *http.Request) {
 }
 
 // TEST - Check Cookie JWT token and return something
-func Welcome(w http.ResponseWriter, r *http.Request) {
-	claims, err := verifyJWT(w, r)
-	if err != nil {
-		w.WriteHeader(http.StatusNotAcceptable) //406
-		json.NewEncoder(w).Encode(err.Error())
+func GetUser(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "OPTIONS" {
+		w.WriteHeader(http.StatusOK) // 200
+		return
+	} else if r.Method == "GET" {
+
+		params := mux.Vars(r)
+		user_id := params["user_id"]
+
+		ctx := context.Background()
+		sa := option.WithCredentialsFile(cred_file)
+
+		// ----Firestore----
+		app2, err := firebase.NewApp(ctx, nil, sa)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+
+		client2, err := app2.Firestore(ctx)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+
+		defer client2.Close()
+
+		// new user
+		var user User
+
+		dsnap, err := client2.Collection("User").Doc(user_id).Get(ctx)
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
+		dsnap.DataTo(&user)
+		user.Password = ""
+
+		json.NewEncoder(w).Encode(user)
+
+	} else {
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
-	// Finally, return the welcome message to the user, along with their
-	// email given in the token
-	w.Write([]byte(fmt.Sprintf("Welcome %s! /n Your user type is: %s, your user id is : %s",
-		claims.EmailAddress, claims.UserType, claims.UserID)))
 
 }
 
-// CLEAR THE TOKEN COOKIE AND JWT
+/*
 func Logout(w http.ResponseWriter, r *http.Request) {
 	// immediately clear the token cookie
 	http.SetCookie(w, &http.Cookie{
@@ -334,15 +272,16 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 	})
 	fmt.Println(r.Header)
 }
+*/
 
 func main() {
 	router := mux.NewRouter()
 
 	router.HandleFunc("/api/auth/signup/{user_type}", SignUp).Methods("POST", "OPTIONS")
 	router.HandleFunc("/api/auth/login", Login).Methods("POST", "OPTIONS")
-	router.HandleFunc("/api/auth/welcome", Welcome).Methods("GET")
+	router.HandleFunc("/api/auth/get/{user_id}", GetUser).Methods("GET", "OPTIONS")
 	//router.HandleFunc("/api/auth/refresh", Refresh)
-	router.HandleFunc("/api/auth/logout", Logout)
+	//router.HandleFunc("/api/auth/logout", Logout).Methods("GET", "OPTIONS")
 
 	fmt.Println("Listening at port 5050")
 	log.Fatal(http.ListenAndServe(":5050", router))

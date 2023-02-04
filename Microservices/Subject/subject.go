@@ -22,6 +22,8 @@ import (
 // http://localhost:5053/api/getsubjects/olevel
 // http://localhost:5053/api/getsubjects/alevel
 
+var cred_file = "eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json"
+
 func Subject(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	req_type := params["type"]
@@ -29,7 +31,7 @@ func Subject(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 
 	// Use a service account
-	sa := option.WithCredentialsFile("/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
+	sa := option.WithCredentialsFile(cred_file)
 	app, err := firebase.NewApp(ctx, nil, sa)
 	if err != nil {
 		log.Fatalln(err)

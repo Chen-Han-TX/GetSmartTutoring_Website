@@ -35,6 +35,8 @@ var (
 )
 */
 
+var cred_file = "eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json"
+
 func main() {
 
 	/*
@@ -66,7 +68,7 @@ func GetPayment(w http.ResponseWriter, r *http.Request) {
 
 	// Init connection to firestore
 	ctx := context.Background()
-	sa := option.WithCredentialsFile("/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
+	sa := option.WithCredentialsFile(cred_file)
 	app, err := firebase.NewApp(ctx, nil, sa)
 	if err != nil {
 		fmt.Println(err.Error())
