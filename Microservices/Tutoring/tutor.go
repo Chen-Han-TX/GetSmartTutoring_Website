@@ -107,8 +107,8 @@ func main() {
 	//router.HandleFunc("/api/user/getuser", GetUser).Methods("GET", "PUT", "OPTIONS")
 	//router.HandleFunc("/api/user/password", UpdatePassword).Methods("PUT", "OPTIONS")
 
-	fmt.Println("Listening at port 5054")
-	log.Fatal(http.ListenAndServe(":5054", router))
+	fmt.Println("Listening at port 5052")
+	log.Fatal(http.ListenAndServe(":5052", router))
 
 }
 
@@ -136,7 +136,7 @@ func main() {
 
 func matchTutors(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
-	sa := option.WithCredentialsFile("../eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
+	sa := option.WithCredentialsFile("/app/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
 	// Verify JWT token to continue using
 	// _, err := verifyJWT(w, r)
 	// if err != nil {
@@ -249,7 +249,7 @@ func matchTutors(w http.ResponseWriter, r *http.Request) {
 
 func applyForTutor(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
-	sa := option.WithCredentialsFile("../eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
+	sa := option.WithCredentialsFile("/app/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
 
 	// ----Firestore----
 	app2, err := firebase.NewApp(ctx, nil, sa)
@@ -295,7 +295,7 @@ func applyForTutor(w http.ResponseWriter, r *http.Request) {
 
 func getApplications(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
-	sa := option.WithCredentialsFile("../eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
+	sa := option.WithCredentialsFile("/app/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
 
 	claims, err := verifyJWT(w, r)
 	if err != nil {
@@ -385,7 +385,7 @@ func getApplications(w http.ResponseWriter, r *http.Request) {
 
 func handleApplications(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
-	sa := option.WithCredentialsFile("../eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
+	sa := option.WithCredentialsFile("/app/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
 
 	claims, err := verifyJWT(w, r)
 	if err != nil {

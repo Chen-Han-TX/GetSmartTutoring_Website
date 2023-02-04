@@ -55,8 +55,8 @@ func main() {
 	//router.HandleFunc("/api/payment/", SignUp).Methods("POST", "OPTIONS")
 	router.HandleFunc("/api/payment", GetPayment).Methods("POST", "OPTIONS")
 
-	fmt.Println("Listening at port 5053")
-	log.Fatal(http.ListenAndServe(":5053", router))
+	fmt.Println("Listening at port 5054")
+	log.Fatal(http.ListenAndServe(":5054", router))
 }
 
 // ======= HANDLER FUNCTIONS ========
@@ -66,7 +66,7 @@ func GetPayment(w http.ResponseWriter, r *http.Request) {
 
 	// Init connection to firestore
 	ctx := context.Background()
-	sa := option.WithCredentialsFile("../eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
+	sa := option.WithCredentialsFile("/app/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
 	app, err := firebase.NewApp(ctx, nil, sa)
 	if err != nil {
 		fmt.Println(err.Error())
