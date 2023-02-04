@@ -2,13 +2,30 @@ import AuthService from "../services/auth.service";
 import React, { useState, useRef, useEffect } from "react";
 import TutoringService from "../services/tutoring.service";
 import ChattingServices from "../services/chatting.service";
+import PaymentService from "../services/payment.service.";
+
 import Card from 'react-bootstrap/Card';
-import Button from 'react-bootstrap/Button';
+import {Button, Modal} from 'react-bootstrap';
+
 const Booking = () => {
     const currentUser = AuthService.getCurrentUser();
     const userType = currentUser.user_type;
     const [appList, setAppList] = useState([]);
     const [listItemsApps, setListItemsApps] = useState("")
+
+    const [appToPay, setAppToPay] = useState(null);
+
+    // For confirm payment modal
+    const [show, setShow] = useState(false);
+
+    const handleClose = () => {
+      setShow(false)
+      setAppToPay(null)
+    }
+    const handleShow = (app) => {
+      setShow(true) 
+      setAppToPay(app);
+    }
 
     useEffect(() => {
         TutoringService.getApplications().then(
@@ -73,6 +90,26 @@ const Booking = () => {
           );
       };
 
+      const makePayment = app => {
+        const payment = {
+          "amount": app.hourly_rate * app.session_length,
+          "tutor_id": app.tutor_id,
+          "student_id": app.student_id,
+          "session_id": app.session_id
+        }
+        PaymentService.makePayment(payment).then(
+          (response) => {
+            alert("Payment has been made!")
+            window.location.reload(true)
+          },
+          (error) => {
+            if (error.response.status == 404){
+              console.log(error)
+            }
+          }
+        );
+      }
+
       useEffect(() => {
         // displaying the Application Cards
         console.log(listItemsApps)
@@ -92,6 +129,10 @@ const Booking = () => {
             Session length: {app.session_length} hours
             </Card.Text>
             <Card.Text>
+            Hourly Rate: $ {app.hourly_rate}
+            </Card.Text>
+
+            <Card.Text>
             Status: {app.application_status}
             </Card.Text>
             {app.application_status === "Pending" && userType==="Tutor" && (
@@ -99,13 +140,17 @@ const Booking = () => {
                 <Button variant="success" onClick={() => handleAccept(app)}>Accept</Button>
                 <Button variant="danger" onClick={() => handleReject(app)}>Reject</Button>
               </>
-            )} {app.application_status === "Accepted"  && (
+            )} 
+             {app.application_status === "Accepted" && userType === "Student" && (
                 <>
-                  <Button variant="success" disabled>
-                    Accepted
+
+                  <Button variant="success" onClick={() => handleShow(app)} >
+                    Pay $ {app.session_length * app.hourly_rate}
                   </Button>
                 </>
-              )}{app.application_status === "Rejected"  && (
+              )}
+              
+              {app.application_status === "Rejected"  && (
                 <>
                   <Button variant="danger" disabled>
                     Rejected
@@ -134,6 +179,22 @@ const Booking = () => {
                     {listItemsApps}
                 </div>
             </header>
+            <Modal show={show} onHide={handleClose}>
+              <Modal.Header closeButton>
+                <Modal.Title>Confirmation</Modal.Title>
+              </Modal.Header>
+              { appToPay && (
+                  <Modal.Body>Are you confirmed to pay a total amount of ${appToPay.hourly_rate * appToPay.session_length} to {appToPay.tutor_name}?</Modal.Body>
+              )}
+              <Modal.Footer>
+                <Button variant="secondary" onClick={handleClose}>
+                  Cancel
+                </Button>
+                <Button variant="primary" onClick={() => makePayment(appToPay)}>
+                  Confirm
+                </Button>
+              </Modal.Footer>
+            </Modal>
         </div>
     )
 }

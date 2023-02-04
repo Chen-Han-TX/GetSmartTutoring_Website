@@ -42,6 +42,7 @@ type User struct {
 }
 
 type Application struct {
+	SessionID        string `json:"session_id" firestore:"SessionID"`
 	StudentID        string `json:"student_id" firestore:"StudentID"`
 	StudentName      string `json:"student_name" firestore:"StudentName"`
 	TutorID          string `json:"tutor_id" firestore:"TutorID"`
@@ -273,8 +274,11 @@ func applyForTutor(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest) //400
 			return
 		}
+		ref := client2.Collection("Applications").NewDoc()
+		xApplication.SessionID = ref.ID
 
-		_, _, err2 := client2.Collection("Applications").Add(ctx, xApplication)
+		//_, _, err2 := client2.Collection("Applications").Add(ctx, xApplication)
+		_, err2 := ref.Set(ctx, xApplication)
 		if err2 != nil {
 			// Handle any errors in an appropriate way, such as returning them.
 			log.Printf("An error has occurred: %s", err)

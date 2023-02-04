@@ -13,6 +13,7 @@ import (
 	"context"
 	"net/http"
 
+	firestore "cloud.google.com/go/firestore"
 	firebase "firebase.google.com/go"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
@@ -85,6 +86,9 @@ func GetPayment(w http.ResponseWriter, r *http.Request) {
 		var payment Payment
 
 		err := json.NewDecoder(r.Body).Decode(&payment)
+
+		fmt.Println(payment.Amount, payment.SessionID, payment.StudentID, payment.TutorID)
+
 		if err != nil {
 			// If the structure of the body is wrong, return an HTTP error
 			w.WriteHeader(http.StatusBadRequest) //400
@@ -97,6 +101,19 @@ func GetPayment(w http.ResponseWriter, r *http.Request) {
 			// Handle any errors in an appropriate way, such as returning them.
 			log.Printf("An error has occurred: %s", err)
 		}
+
+		// update the application status to Payment Made
+		_, err = client.Collection("Applications").Doc(payment.SessionID).Update(ctx, []firestore.Update{
+			{
+				Path:  "ApplicationStatus",
+				Value: "Payment Made",
+			},
+		})
+		if err != nil {
+			// Handle any errors in an appropriate way, such as returning them.
+			log.Printf("An error has occurred: %s", err)
+		}
+
 		json.NewEncoder(w).Encode(payment)
 		return
 

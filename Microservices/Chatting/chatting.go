@@ -158,9 +158,11 @@ func createChatList(w http.ResponseWriter, r *http.Request) {
 			chatListData.Messages = []Message{}
 			chatList = append(chatList, chatListData)
 		}
-		//send the messages to the user
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(chatListData)
+		/*
+			//send the messages to the user
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(chatListData)
+		*/
 
 		for _, chat := range chatList {
 			// Check if the chatList entry already exists in the database
@@ -183,6 +185,8 @@ func createChatList(w http.ResponseWriter, r *http.Request) {
 				_, _, err := client.Collection("ChatList").Add(ctx, chat)
 				if err != nil {
 					log.Fatalf("Failed adding chatlist: %v", err)
+					w.Header().Set("Content-Type", "application/json")
+					json.NewEncoder(w).Encode(chat)
 				}
 			}
 		}
