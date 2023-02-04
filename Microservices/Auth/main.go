@@ -108,7 +108,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 	user_type := params["user_type"]
 
 	ctx := context.Background()
-	sa := option.WithCredentialsFile("/app/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
+	sa := option.WithCredentialsFile("/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
 
 	// ---Authentication--
 	app, err := firebase.NewApp(ctx, nil, sa)
@@ -195,7 +195,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	var user User
 
 	ctx := context.Background()
-	sa := option.WithCredentialsFile("/app/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
+	sa := option.WithCredentialsFile("/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
 
 	// ---Authentication--
 	app, err := firebase.NewApp(ctx, nil, sa)

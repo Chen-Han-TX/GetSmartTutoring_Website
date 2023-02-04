@@ -29,7 +29,7 @@ func Subject(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 
 	// Use a service account
-	sa := option.WithCredentialsFile("/app/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
+	sa := option.WithCredentialsFile("/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
 	app, err := firebase.NewApp(ctx, nil, sa)
 	if err != nil {
 		log.Fatalln(err)
