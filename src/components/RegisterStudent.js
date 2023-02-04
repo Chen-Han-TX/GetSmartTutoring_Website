@@ -3,10 +3,7 @@ import Form from "react-validation/build/form";
 import Input from "react-validation/build/input";
 import CheckButton from "react-validation/build/button";
 import DropdownMultiselect from "react-multiselect-dropdown-bootstrap";
-
 import { isEmail } from "validator";
-
-
 import AuthService from "../services/auth.service";
 import SubjectServices from "../services/subject.service";
 import { useNavigate } from "react-router-dom";
@@ -44,16 +41,17 @@ const vpassword = (value) => {
 
 
 const RegisterStudent = () => {
-  const form = useRef();
-  const checkBtn = useRef();
+
+  const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [school, setSchool] = useState("");
-
-  var selectedSubjects = {
-    "PSLE": [], "O-Level": [], "A-Level": []
-  }
+  const [selectedSubjects, setSelectedSubjects] = useState({
+    "PSLE" : [],
+    "O-Level": [],
+    "A-Level": []
+  });
 
   const subjects = SubjectServices.getAllSubjects()
   const PSLESubjects = subjects["PSLE"].sort()
@@ -78,11 +76,6 @@ const RegisterStudent = () => {
     ALevelArray.push({key: value, label: value })
   } 
 
-  const [successful, setSuccessful] = useState(false);
-  const [message, setMessage] = useState("");
-  const navigate = useNavigate();
-
-
   const onChangeEmail = (e) => {
     const email = e.target.value;
     setEmail(email);
@@ -104,51 +97,56 @@ const RegisterStudent = () => {
     setSchool(school);
   };
 
-  const OnChangePSLE = (subject) => {
-    selectedSubjects["PSLE"] = subject
+  const OnChangePSLE = (event, subject) => {
+    let updated = selectedSubjects
+    updated["PSLE"] = subject
+    setSelectedSubjects(selectedSubjects => ({
+      ...updated
+    }));
   }
 
-  const onChangeOlevel = (subject) => {
-    selectedSubjects["O-Level"] = subject
-  }
+const onChangeOlevel = (subject) => {
+    let updated = selectedSubjects
+    updated["O-Level"] = subject
+    setSelectedSubjects(selectedSubjects => ({
+        ...updated
+    }));
+}
 
-  const onChangeAlevel = (subject) => {
-    selectedSubjects["A-Level"] = subject
-  }
-
+const onChangeAlevel = (subject) => {
+    let updated = selectedSubjects
+    updated["A-Level"] = subject
+    setSelectedSubjects(selectedSubjects => ({
+        ...updated
+    }));
+}
 
   const handleRegister = (e) => {
     e.preventDefault();
 
-    setMessage("");
-    setSuccessful(false);
 
-    form.current.validateAll();
-
-    // If passed validation, call auth service to send the API request
-    if (checkBtn.current.context._errors.length === 0) {
-      
+    if  (name == "" || email == "" || password == "" || school == "") {
+      alert("please fill up all the required fields!")
+      return
+    } else if (selectedSubjects["A-Level"].length == 0 && selectedSubjects["PSLE"].length == 0 && selectedSubjects["O-Level"].length == 0){
+      alert("please choose at least one area of interest!")
+      return
+    } else {
       AuthService.register_student(name, email, password, school, selectedSubjects).then(
         (response) => {
           if (response.status == 200) {
-            setMessage("Registered Successfully!");
-            setSuccessful(true);
-            setTimeout(function () {
-              navigate("/login");
-              window.location.reload();
-            }, 2000);
+            alert("Registered successfully!")
+            navigate("/login");
+            window.location.reload();
           } else {
-            setMessage("Error, try again!");
-            setSuccessful(false);
-            setTimeout(function () {
-              setMessage("");
-            }, 5000);
+            alert("Error, try again")
           }
         },
         (error) => {
           var resMessage = ""
           if (error.response.status === 406) {
             resMessage = "This email has been registered!"
+            alert(resMessage)
           } else {
             resMessage =
             (error.response &&
@@ -156,9 +154,8 @@ const RegisterStudent = () => {
               error.response.data.message) ||
             error.message ||
             error.toString();
+            alert(resMessage)
           }
-          setMessage(resMessage);
-          setSuccessful(false);
         }
       );
     }
@@ -166,11 +163,10 @@ const RegisterStudent = () => {
 
 
   return (
-        <Form onSubmit={handleRegister} ref={form}>
-          <h3>Register Student</h3>
-          {!successful && (
 
+        <Form className="auto-inner">
             <div>
+            <h3>Register Student</h3>
               <hr className="hr"></hr>
               <h4>Basic Details</h4>
               <div className="mb-3">
@@ -226,8 +222,8 @@ const RegisterStudent = () => {
               <div className="mb-3">
                   <label htmlFor="options">PSLE</label>
                   <DropdownMultiselect options={PSLEArray} name="pslesubjects" 
-                  handleOnChange={(selected) => {
-                    OnChangePSLE(selected);
+                  handleOnChange={(event, selected) => {
+                    OnChangePSLE(event, selected);
                   }}/>
               </div>
 
@@ -248,23 +244,9 @@ const RegisterStudent = () => {
               </div>
 
               <div className="d-grid">
-                <button className="btn btn-success btn-block">Register</button>
+                <button onClick={handleRegister} className="btn btn-success btn-block">Register</button>
               </div>
             </div>
-          )}
-
-          {message && (
-            <div className="mb-3">
-              <div
-                className={
-                  successful ? "alert alert-success" : "alert alert-danger"
-                }
-                role="alert" >
-                {message}
-              </div>
-            </div>
-          )}
-          <CheckButton style={{ display: "none" }} ref={checkBtn} />
         </Form>
   );
 };

@@ -96,8 +96,12 @@ return (
 
 
     ) : (
-      <div>
-        No Chatroom found!
+      <div className='auth-inner'>
+        <h3>You do not have a chatroom</h3>
+        {currentUser.user_type == "student" && (
+          <div>please book a session with your desired tutor first!
+            </div>
+        )} 
         </div>
     )}
     </div>

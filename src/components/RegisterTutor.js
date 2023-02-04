@@ -74,7 +74,12 @@ const RegisterTutor = () => {
   const [startForEndTime, setStartForEndTime] = useState("09:00");
   const [endTime, setEndTime] = useState("10:00");
   const [availability, setAvailability] = useState({});
-  const [selectedSubjects, setSelectedSubjects] = useState({});
+  const [selectedSubjects, setSelectedSubjects] = useState({
+    "PSLE" : [],
+    "O-Level": [],
+    "A-Level": []
+  });
+
 
 
   // Maximum 5 files
@@ -219,7 +224,7 @@ const RegisterTutor = () => {
     handleUploadFiles(chosenFiles);
 }
 
-  const handleRegister = async (e) => {
+  const handleRegister = (e) => {
     e.preventDefault();
     setMessage("");
     setSuccessful(false);
@@ -266,7 +271,7 @@ const RegisterTutor = () => {
             if (uploadedURLs.length === uploadedFiles.length){
 
               alert("Files uploaded successfully!")
-              await AuthService.register_tutor(name, email, password, hourlyRate, availability, selectedSubjects, uploadedURLs).then(
+              AuthService.register_tutor(name, email, password, hourlyRate, availability, selectedSubjects, uploadedURLs).then(
                 (response) => {
                   if (response.status === 200) {
                     setMessage("Registered Successfully!");
