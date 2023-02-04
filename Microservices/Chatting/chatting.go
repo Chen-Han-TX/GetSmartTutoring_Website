@@ -127,7 +127,7 @@ func main() {
 // create a chat for a student and a tutor once the applicaton became success
 func createChatList(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
-	sa := option.WithCredentialsFile("../eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
+	sa := option.WithCredentialsFile("/app/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
 
 	app, err := firebase.NewApp(ctx, nil, sa)
 	if err != nil {
@@ -212,7 +212,7 @@ func getChatList(w http.ResponseWriter, r *http.Request) {
 	userid := claims.UserID
 
 	ctx := context.Background()
-	sa := option.WithCredentialsFile("../eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
+	sa := option.WithCredentialsFile("/app/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
 
 	app, err := firebase.NewApp(ctx, nil, sa)
 	if err != nil {
@@ -280,7 +280,7 @@ func getMessages(w http.ResponseWriter, r *http.Request) {
 	anotherUserId := vars["userid_opp"]
 
 	ctx := context.Background()
-	sa := option.WithCredentialsFile("../eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
+	sa := option.WithCredentialsFile("/app/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
 
 	app, err := firebase.NewApp(ctx, nil, sa)
 	if err != nil {
@@ -367,7 +367,7 @@ func sendMessage(w http.ResponseWriter, r *http.Request) {
 	anotherUserId := vars["userid_opp"]
 
 	ctx := context.Background()
-	sa := option.WithCredentialsFile("../eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
+	sa := option.WithCredentialsFile("/app/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json")
 
 	app, err := firebase.NewApp(ctx, nil, sa)
 	if err != nil {

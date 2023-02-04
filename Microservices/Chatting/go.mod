@@ -1,4 +1,4 @@
-module main.go
+module chatting.go
 
 go 1.19
 
