@@ -24,6 +24,7 @@ FROM gcr.io/distroless/base-debian10
 WORKDIR /
 
 COPY --from=build /tutoring /tutoring
+COPY --from=build /app/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json /
 
 EXPOSE 5052
 

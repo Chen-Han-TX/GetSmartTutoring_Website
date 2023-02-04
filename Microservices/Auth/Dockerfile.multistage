@@ -10,8 +10,8 @@ WORKDIR /app
 COPY go.mod ./
 COPY go.sum ./
 RUN go mod download
-COPY eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json /app/
 
+COPY eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json /app/
 COPY *.go ./
 
 RUN go build -o /auth
@@ -24,6 +24,7 @@ FROM gcr.io/distroless/base-debian10
 WORKDIR /
 
 COPY --from=build /auth /auth
+COPY --from=build /app/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json /
 
 EXPOSE 5050
 
