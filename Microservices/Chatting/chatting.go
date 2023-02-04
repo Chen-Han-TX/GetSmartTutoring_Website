@@ -53,8 +53,11 @@ type Message struct {
 }
 
 type Application struct {
+	SessionID        string `json:"session_id" firestore:"SessionID"`
 	StudentID        string `json:"student_id" firestore:"StudentID"`
+	StudentName      string `json:"student_name" firestore:"StudentName"`
 	TutorID          string `json:"tutor_id" firestore:"TutorID"`
+	TutorName        string `json:"tutor_name" firestore:"TutorName"`
 	Subject          string `json:"subject" firestore:"Subject"`
 	ApplicatonStatus string `json:"application_status" firestore:"ApplicationStatus"`
 	SessionLength    int    `json:"session_length" firestore:"SessionLength"`
@@ -155,6 +158,8 @@ func createChatList(w http.ResponseWriter, r *http.Request) {
 			doc.DataTo(&application)
 			chatListData.TutorID = application.TutorID
 			chatListData.StudentID = application.StudentID
+			chatListData.StudentName = application.StudentName
+			chatListData.TutorName = application.TutorName
 			chatListData.Messages = []Message{}
 			chatList = append(chatList, chatListData)
 		}
@@ -182,12 +187,17 @@ func createChatList(w http.ResponseWriter, r *http.Request) {
 			}
 			// Add the chatList to the database if it does not already exist
 			if !found {
-				_, _, err := client.Collection("ChatList").Add(ctx, chat)
+
+				ref := client.Collection("ChatList").NewDoc()
+				chat.ChatId = ref.ID
+
+				//_, _, err2 := client2.Collection("Applications").Add(ctx, xApplication)
+				_, err := ref.Set(ctx, chat)
 				if err != nil {
 					log.Fatalf("Failed adding chatlist: %v", err)
-					w.Header().Set("Content-Type", "application/json")
-					json.NewEncoder(w).Encode(chat)
 				}
+				w.Header().Set("Content-Type", "application/json")
+				json.NewEncoder(w).Encode(chat)
 			}
 		}
 	}
