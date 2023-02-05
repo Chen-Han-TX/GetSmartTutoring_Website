@@ -14,6 +14,8 @@ import (
 	"google.golang.org/api/option"
 )
 
+var cred_file = "/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json"
+
 type User struct {
 	UserID         string              `json:"user_id" firestore:"UserID"`
 	UserType       string              `json:"user_type" firestore:"UserType"`
@@ -53,8 +55,6 @@ type Application struct {
 	SessionLength    int    `json:"session_length" firestore:"SessionLength"`
 	HourlyRate       int    `json:"hourly_rate" firestore:"HourlyRate"`
 }
-
-var cred_file = "eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json"
 
 func main() {
 	router := mux.NewRouter()

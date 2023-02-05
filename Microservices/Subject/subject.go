@@ -22,7 +22,7 @@ import (
 // http://localhost:5053/api/getsubjects/olevel
 // http://localhost:5053/api/getsubjects/alevel
 
-var cred_file = "eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json"
+var cred_file = "/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json"
 
 func Subject(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
