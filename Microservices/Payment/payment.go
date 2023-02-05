@@ -24,6 +24,8 @@ import (
 	"google.golang.org/api/option"
 )
 
+var cred_file = "/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json"
+
 type Payment struct {
 	Amount    int    `json:"amount" firestore:"Amount"`
 	TutorID   string `json:"tutor_id" firestore:"TutorID"`
@@ -38,8 +40,6 @@ var (
 	accessToken *paypal.TokenResponse
 )
 */
-
-var cred_file = "eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json"
 
 func main() {
 
