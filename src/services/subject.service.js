@@ -3,7 +3,7 @@ import axios from "axios";
 const SUB_URL = "https://subject-4dcnj7fm6a-uc.a.run.app/api/getsubjects/"
 
 
-
+axios.defaults.withCredentials = true
 let axiosConfig = {
     headers: {
         'Content-Type': 'text/plain',

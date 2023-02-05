@@ -5,7 +5,6 @@ import axios from "axios";
 const AUTH_URL = "https://auth-4dcnj7fm6a-uc.a.run.app/api/auth/"
 
 axios.defaults.withCredentials = true
-
 let axiosConfig = {
     headers: {
         'Content-Type': 'text/plain',
