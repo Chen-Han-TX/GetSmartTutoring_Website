@@ -16,6 +16,8 @@ import (
 	"google.golang.org/api/option"
 )
 
+var cred_file = "/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json"
+
 // ==== STRUCTs ========
 // struct for user login credentials
 type Credentials struct {
@@ -36,8 +38,6 @@ type User struct {
 	Availability   map[string]map[string]string `json:"availability,omitempty" firestore:"Availability,omitempty"`
 	CertOfEvidence []string                     `json:"cert_of_evidence,omitempty" firestore:"CertOfEvidence,omitempty"`
 }
-
-var cred_file = "eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json"
 
 // ========= HANDLER FUNCTIONS ==========
 
