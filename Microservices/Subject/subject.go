@@ -90,9 +90,23 @@ func Subject(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	router := mux.NewRouter()
+<<<<<<< Updated upstream
 
 	router.HandleFunc("/api/getsubjects/{type}", Subject).Methods("GET", "OPTIONS")
 
+=======
+
+	router.HandleFunc("/api/getsubjects/{type}", Subject).Methods("GET", "OPTIONS")
+
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"https://react-app-4dcnj7fm6a-uc.a.run.app"},
+		AllowCredentials: true,
+	})
+
+	handler := cors.Default().Handler(router)
+	handler = c.Handler(handler)
+
+>>>>>>> Stashed changes
 	fmt.Println("Listening at port 5051")
 	log.Fatal(http.ListenAndServe(":5051", router))
 }

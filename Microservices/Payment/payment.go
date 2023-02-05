@@ -17,6 +17,10 @@ import (
 	firebase "firebase.google.com/go"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
+<<<<<<< Updated upstream
+=======
+	"github.com/rs/cors"
+>>>>>>> Stashed changes
 	"google.golang.org/api/option"
 )
 
@@ -54,9 +58,24 @@ func main() {
 		}
 	*/
 	router := mux.NewRouter()
+<<<<<<< Updated upstream
 	//router.HandleFunc("/api/payment/", SignUp).Methods("POST", "OPTIONS")
 	router.HandleFunc("/api/payment", GetPayment).Methods("POST", "OPTIONS")
 
+=======
+
+	//router.HandleFunc("/api/payment/", SignUp).Methods("POST", "OPTIONS")
+	router.HandleFunc("/api/payment", GetPayment).Methods("POST", "OPTIONS")
+
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"https://react-app-4dcnj7fm6a-uc.a.run.app"},
+		AllowCredentials: true,
+	})
+
+	handler := cors.Default().Handler(router)
+	handler = c.Handler(handler)
+
+>>>>>>> Stashed changes
 	fmt.Println("Listening at port 5054")
 	log.Fatal(http.ListenAndServe(":5054", router))
 }

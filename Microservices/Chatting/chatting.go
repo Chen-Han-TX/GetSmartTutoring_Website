@@ -54,6 +54,7 @@ type Application struct {
 	HourlyRate       int    `json:"hourly_rate" firestore:"HourlyRate"`
 }
 
+<<<<<<< Updated upstream
 var cred_file = "eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json"
 
 func main() {
@@ -67,6 +68,28 @@ func main() {
 	//router.HandleFunc("/api/getmessages/{userid_opp}", getMessages).Methods("GET", "OPTIONS")
 	//For the user, send a message to a chat in a chatlist
 	router.HandleFunc("/api/sendmessages/{user_id}/{userid_opp}/{user_type}", sendMessage).Methods("POST", "OPTIONS")
+=======
+func main() {
+	router := mux.NewRouter()
+
+	// Create a chat list if the tutor accepts the application (when the application status is changed to "accepted")
+	router.HandleFunc("/api/createchatlist", createChatList).Methods("POST", "OPTIONS")
+	// For the user, retrieve all the chatlist that he is involved in
+	router.HandleFunc("/api/getlist/{user_id}/{user_type}", getChatList).Methods("GET", "OPTIONS")
+	// For the user, retrieve all the messages for a specific chat in a chatlist (Chen Han: we didnt really use this in front-end so..)
+	// router.HandleFunc("/api/getmessages/{userid_opp}", getMessages).Methods("GET", "OPTIONS")
+	// For the user, send a message to a chat in a chatlist
+	router.HandleFunc("/api/sendmessages/{user_id}/{userid_opp}/{user_type}", sendMessage).Methods("POST", "OPTIONS")
+
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"https://react-app-4dcnj7fm6a-uc.a.run.app"},
+		AllowCredentials: true,
+	})
+
+	handler := cors.Default().Handler(router)
+	handler = c.Handler(handler)
+
+>>>>>>> Stashed changes
 	fmt.Println("Listening at port 5053")
 	log.Fatal(http.ListenAndServe(":5053", router))
 

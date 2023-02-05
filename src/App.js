@@ -22,7 +22,7 @@ import SubjectServices from './services/subject.service';
 
 const App = () => {
 
-  const subjects = SubjectServices.allSubjects();
+  SubjectServices.allSubjects();
 
   const [currentUser, setCurrentUser] = useState(undefined);
   const [showTutor, setShowTutor] = useState(false);

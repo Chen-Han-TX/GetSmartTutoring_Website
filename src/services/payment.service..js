@@ -1,4 +1,3 @@
-import { upload } from "@testing-library/user-event/dist/upload";
 import axios from "axios";
 
 const PAYMENT_URL = "http://localhost:5054/api/"
