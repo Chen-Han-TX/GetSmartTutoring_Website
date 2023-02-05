@@ -15,6 +15,7 @@ import (
 	firebase "firebase.google.com/go"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 )
@@ -56,8 +57,6 @@ func main() {
 	//router.HandleFunc("/api/user/getuser", GetUser).Methods("GET", "PUT", "OPTIONS")
 	//router.HandleFunc("/api/user/password", UpdatePassword).Methods("PUT", "OPTIONS")
 
-<<<<<<< Updated upstream
-=======
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"https://react-app-4dcnj7fm6a-uc.a.run.app"},
 		AllowCredentials: true,
@@ -66,9 +65,8 @@ func main() {
 	handler := cors.Default().Handler(router)
 	handler = c.Handler(handler)
 
->>>>>>> Stashed changes
 	fmt.Println("Listening at port 5052")
-	log.Fatal(http.ListenAndServe(":5052", router))
+	log.Fatal(http.ListenAndServe(":5052", handler))
 
 }
 
@@ -95,6 +93,8 @@ func main() {
 // ]
 
 func matchTutors(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Allow-Control-Allow-Origin", "https://react-app-4dcnj7fm6a-uc.a.run.app")
+
 	ctx := context.Background()
 	sa := option.WithCredentialsFile(cred_file)
 
@@ -201,6 +201,8 @@ func matchTutors(w http.ResponseWriter, r *http.Request) {
 }
 
 func applyForTutor(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Allow-Control-Allow-Origin", "https://react-app-4dcnj7fm6a-uc.a.run.app")
+
 	ctx := context.Background()
 	sa := option.WithCredentialsFile(cred_file)
 
@@ -247,6 +249,7 @@ func applyForTutor(w http.ResponseWriter, r *http.Request) {
 }
 
 func getApplications(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Allow-Control-Allow-Origin", "https://react-app-4dcnj7fm6a-uc.a.run.app")
 
 	params := mux.Vars(r)
 	user_id := params["user_id"]
@@ -335,6 +338,8 @@ func getApplications(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleApplications(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Allow-Control-Allow-Origin", "https://react-app-4dcnj7fm6a-uc.a.run.app")
+
 	params := mux.Vars(r)
 	user_type := params["user_type"]
 

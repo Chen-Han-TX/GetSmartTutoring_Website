@@ -9,6 +9,7 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 
 	firebase "firebase.google.com/go/v4"
 	"google.golang.org/api/iterator"
@@ -25,6 +26,8 @@ import (
 var cred_file = "/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json"
 
 func Subject(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Allow-Control-Allow-Origin", "https://react-app-4dcnj7fm6a-uc.a.run.app")
+
 	params := mux.Vars(r)
 	req_type := params["type"]
 
@@ -90,11 +93,6 @@ func Subject(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	router := mux.NewRouter()
-<<<<<<< Updated upstream
-
-	router.HandleFunc("/api/getsubjects/{type}", Subject).Methods("GET", "OPTIONS")
-
-=======
 
 	router.HandleFunc("/api/getsubjects/{type}", Subject).Methods("GET", "OPTIONS")
 
@@ -106,7 +104,6 @@ func main() {
 	handler := cors.Default().Handler(router)
 	handler = c.Handler(handler)
 
->>>>>>> Stashed changes
 	fmt.Println("Listening at port 5051")
-	log.Fatal(http.ListenAndServe(":5051", router))
+	log.Fatal(http.ListenAndServe(":5051", handler))
 }

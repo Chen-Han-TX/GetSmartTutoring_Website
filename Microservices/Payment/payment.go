@@ -17,10 +17,7 @@ import (
 	firebase "firebase.google.com/go"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
-<<<<<<< Updated upstream
-=======
 	"github.com/rs/cors"
->>>>>>> Stashed changes
 	"google.golang.org/api/option"
 )
 
@@ -58,11 +55,6 @@ func main() {
 		}
 	*/
 	router := mux.NewRouter()
-<<<<<<< Updated upstream
-	//router.HandleFunc("/api/payment/", SignUp).Methods("POST", "OPTIONS")
-	router.HandleFunc("/api/payment", GetPayment).Methods("POST", "OPTIONS")
-
-=======
 
 	//router.HandleFunc("/api/payment/", SignUp).Methods("POST", "OPTIONS")
 	router.HandleFunc("/api/payment", GetPayment).Methods("POST", "OPTIONS")
@@ -75,15 +67,15 @@ func main() {
 	handler := cors.Default().Handler(router)
 	handler = c.Handler(handler)
 
->>>>>>> Stashed changes
 	fmt.Println("Listening at port 5054")
-	log.Fatal(http.ListenAndServe(":5054", router))
+	log.Fatal(http.ListenAndServe(":5054", handler))
 }
 
 // ======= HANDLER FUNCTIONS ========
 // GET user info
 // UPDATE user in the db
 func GetPayment(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Allow-Control-Allow-Origin", "https://react-app-4dcnj7fm6a-uc.a.run.app")
 
 	// Init connection to firestore
 	ctx := context.Background()
