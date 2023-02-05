@@ -11,6 +11,7 @@ import (
 
 	firebase "firebase.google.com/go"
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 	"google.golang.org/api/option"
 )
 
@@ -56,9 +57,6 @@ type Application struct {
 	HourlyRate       int    `json:"hourly_rate" firestore:"HourlyRate"`
 }
 
-
-var cred_file = "eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json"
-
 func main() {
 	router := mux.NewRouter()
 
@@ -80,12 +78,14 @@ func main() {
 	handler = c.Handler(handler)
 
 	fmt.Println("Listening at port 5053")
-	log.Fatal(http.ListenAndServe(":5053", router))
+	log.Fatal(http.ListenAndServe(":5053", handler))
 
 }
 
 // create a chat for a student and a tutor once the applicaton became success
 func createChatList(w http.ResponseWriter, r *http.Request) {
+
+	w.Header().Set("Allow-Control-Allow-Origin", "https://react-app-4dcnj7fm6a-uc.a.run.app")
 	ctx := context.Background()
 	sa := option.WithCredentialsFile(cred_file)
 
@@ -164,6 +164,8 @@ func createChatList(w http.ResponseWriter, r *http.Request) {
 }
 
 func getChatList(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Allow-Control-Allow-Origin", "https://react-app-4dcnj7fm6a-uc.a.run.app")
+
 	params := mux.Vars(r)
 	user_id := params["user_id"]
 	user_type := params["user_type"]
@@ -315,6 +317,8 @@ func getMessages(w http.ResponseWriter, r *http.Request) {
 */
 
 func sendMessage(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Allow-Control-Allow-Origin", "https://react-app-4dcnj7fm6a-uc.a.run.app")
+
 	vars := mux.Vars(r)
 	user_id := vars["user_id"]
 	anotherUserId := vars["userid_opp"]

@@ -13,6 +13,7 @@ import (
 	"firebase.google.com/go/auth"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 	"google.golang.org/api/option"
 )
 
@@ -44,6 +45,8 @@ type User struct {
 // RETURN 200 -> Registered
 // RETURN 406 -> Duplicated account (email)
 func SignUp(w http.ResponseWriter, r *http.Request) {
+
+	w.Header().Set("Allow-Control-Allow-Origin", "https://react-app-4dcnj7fm6a-uc.a.run.app")
 
 	// POST http://localhost:5050/api/auth/signup/student
 	// {"name": "xyz", "email": "..", "password", "area of interest": {"olevel":"..."...}, "certificate":[]}
@@ -136,6 +139,9 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 }
 
 func Login(w http.ResponseWriter, r *http.Request) {
+
+	w.Header().Set("Allow-Control-Allow-Origin", "https://react-app-4dcnj7fm6a-uc.a.run.app")
+
 	var creds Credentials
 	var UserID string
 	var user User
@@ -217,6 +223,8 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 // TEST - Check Cookie JWT token and return something
 func GetUser(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Allow-Control-Allow-Origin", "https://react-app-4dcnj7fm6a-uc.a.run.app")
+
 	if r.Method == "OPTIONS" {
 		w.WriteHeader(http.StatusOK) // 200
 		return
@@ -282,7 +290,14 @@ func main() {
 	router.HandleFunc("/api/auth/get/{user_id}", GetUser).Methods("GET", "OPTIONS")
 	//router.HandleFunc("/api/auth/refresh", Refresh)
 	//router.HandleFunc("/api/auth/logout", Logout).Methods("GET", "OPTIONS")
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"https://react-app-4dcnj7fm6a-uc.a.run.app"},
+		AllowCredentials: true,
+	})
+
+	handler := cors.Default().Handler(router)
+	handler = c.Handler(handler)
 
 	fmt.Println("Listening at port 5050")
-	log.Fatal(http.ListenAndServe(":5050", router))
+	log.Fatal(http.ListenAndServe(":5050", handler))
 }
