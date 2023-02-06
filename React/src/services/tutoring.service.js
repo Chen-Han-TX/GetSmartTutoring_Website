@@ -1,7 +1,9 @@
 import { upload } from "@testing-library/user-event/dist/upload";
 import axios from "axios";
 
-const TUTORING_URL = "https://tutoring-4dcnj7fm6a-uc.a.run.app/api/tutoring/"
+//const TUTORING_URL = "https://tutoring-4dcnj7fm6a-uc.a.run.app/api/tutoring/"
+//const TUTORING_URL = "http://localhost:5052/api/tutoring/"
+const TUTORING_URL = "http://34.132.242.222:5052/api/tutoring/"
 
 axios.defaults.withCredentials = true
 

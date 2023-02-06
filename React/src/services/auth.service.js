@@ -2,7 +2,7 @@
 import { upload } from "@testing-library/user-event/dist/upload";
 import axios from "axios";
 
-const AUTH_URL = "https://auth-4dcnj7fm6a-uc.a.run.app/api/auth/"
+const AUTH_URL = "http://34.29.94.75:5050/api/auth/"
 
 axios.defaults.withCredentials = true
 let axiosConfig = {
@@ -12,6 +12,7 @@ let axiosConfig = {
     },
     withCredentials : true,
 }
+
 const register_student = (name, email, password, school, subjects) => {
     return axios.post(AUTH_URL + "signup/student", {
         "name" : name,
