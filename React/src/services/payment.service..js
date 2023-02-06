@@ -1,6 +1,7 @@
 import axios from "axios";
 
-const PAYMENT_URL = "https://payment-4dcnj7fm6a-uc.a.run.app/api/"
+//const PAYMENT_URL = "https://payment-4dcnj7fm6a-uc.a.run.app/api/"
+const PAYMENT_URL = "http://localhost:5054"
 
 axios.defaults.withCredentials = true
 

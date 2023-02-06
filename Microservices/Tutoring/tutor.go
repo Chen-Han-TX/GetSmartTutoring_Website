@@ -22,6 +22,9 @@ import (
 
 var cred_file = "/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json"
 
+// var url = "https://react-app-4dcnj7fm6a-uc.a.run.app
+var url = "http://localhost:3000"
+
 type User struct {
 	UserID         string                       `json:"user_id" firestore:"UserID"`
 	UserType       string                       `json:"user_type" firestore:"UserType"`
@@ -58,7 +61,7 @@ func main() {
 	//router.HandleFunc("/api/user/password", UpdatePassword).Methods("PUT", "OPTIONS")
 
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"https://react-app-4dcnj7fm6a-uc.a.run.app"},
+		AllowedOrigins:   []string{url},
 		AllowCredentials: true,
 	})
 
@@ -93,7 +96,7 @@ func main() {
 // ]
 
 func matchTutors(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Allow-Control-Allow-Origin", "https://react-app-4dcnj7fm6a-uc.a.run.app")
+	w.Header().Set("Allow-Control-Allow-Origin", url)
 
 	ctx := context.Background()
 	sa := option.WithCredentialsFile(cred_file)
@@ -201,7 +204,7 @@ func matchTutors(w http.ResponseWriter, r *http.Request) {
 }
 
 func applyForTutor(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Allow-Control-Allow-Origin", "https://react-app-4dcnj7fm6a-uc.a.run.app")
+	w.Header().Set("Allow-Control-Allow-Origin", url)
 
 	ctx := context.Background()
 	sa := option.WithCredentialsFile(cred_file)
@@ -249,7 +252,7 @@ func applyForTutor(w http.ResponseWriter, r *http.Request) {
 }
 
 func getApplications(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Allow-Control-Allow-Origin", "https://react-app-4dcnj7fm6a-uc.a.run.app")
+	w.Header().Set("Allow-Control-Allow-Origin", url)
 
 	params := mux.Vars(r)
 	user_id := params["user_id"]
@@ -338,7 +341,7 @@ func getApplications(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleApplications(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Allow-Control-Allow-Origin", "https://react-app-4dcnj7fm6a-uc.a.run.app")
+	w.Header().Set("Allow-Control-Allow-Origin", url)
 
 	params := mux.Vars(r)
 	user_type := params["user_type"]

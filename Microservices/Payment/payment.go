@@ -23,6 +23,9 @@ import (
 
 var cred_file = "/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json"
 
+// var url = "https://react-app-4dcnj7fm6a-uc.a.run.app
+var url = "http://localhost:3000"
+
 type Payment struct {
 	Amount    int    `json:"amount" firestore:"Amount"`
 	TutorID   string `json:"tutor_id" firestore:"TutorID"`
@@ -60,7 +63,7 @@ func main() {
 	router.HandleFunc("/api/payment", GetPayment).Methods("POST", "OPTIONS")
 
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"https://react-app-4dcnj7fm6a-uc.a.run.app"},
+		AllowedOrigins:   []string{url},
 		AllowCredentials: true,
 	})
 
@@ -75,7 +78,7 @@ func main() {
 // GET user info
 // UPDATE user in the db
 func GetPayment(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Allow-Control-Allow-Origin", "https://react-app-4dcnj7fm6a-uc.a.run.app")
+	w.Header().Set("Allow-Control-Allow-Origin", url)
 
 	// Init connection to firestore
 	ctx := context.Background()

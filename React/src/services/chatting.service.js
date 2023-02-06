@@ -1,7 +1,8 @@
 import { upload } from "@testing-library/user-event/dist/upload";
 import axios from "axios";
 
-const CHATTING_URL = "https://chatting-4dcnj7fm6a-uc.a.run.app/api/"
+//const CHATTING_URL = "https://chatting-4dcnj7fm6a-uc.a.run.app/api/"
+const CHATTING_URL = "http://localhost:5053"
 
 axios.defaults.withCredentials = true
 

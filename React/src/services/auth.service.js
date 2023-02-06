@@ -2,7 +2,8 @@
 import { upload } from "@testing-library/user-event/dist/upload";
 import axios from "axios";
 
-const AUTH_URL = "https://auth-4dcnj7fm6a-uc.a.run.app/api/auth/"
+//const AUTH_URL = "https://auth-4dcnj7fm6a-uc.a.run.app/api/auth/"
+const AUTH_URL = "http://localhost:5050"
 
 axios.defaults.withCredentials = true
 let axiosConfig = {
