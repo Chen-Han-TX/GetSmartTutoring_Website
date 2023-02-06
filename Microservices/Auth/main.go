@@ -20,7 +20,9 @@ import (
 var cred_file = "/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json"
 
 // var url = "https://react-app-4dcnj7fm6a-uc.a.run.app
-var url = "http://localhost:3000"
+// var url = "http://localhost:3000"
+// var url = "http://192.168.1.4:80"
+var url = "http://104.154.110.27"
 
 // ==== STRUCTs ========
 // struct for user login credentials
@@ -49,7 +51,7 @@ type User struct {
 // RETURN 406 -> Duplicated account (email)
 func SignUp(w http.ResponseWriter, r *http.Request) {
 
-	w.Header().Set("Allow-Control-Allow-Origin", url)
+	w.Header().Set("Access-Control-Allow-Origin", url)
 
 	// POST http://localhost:5050/api/auth/signup/student
 	// {"name": "xyz", "email": "..", "password", "area of interest": {"olevel":"..."...}, "certificate":[]}
@@ -143,7 +145,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 
 func Login(w http.ResponseWriter, r *http.Request) {
 
-	w.Header().Set("Allow-Control-Allow-Origin", url)
+	w.Header().Set("Access-Control-Allow-Origin", url)
 
 	var creds Credentials
 	var UserID string
@@ -226,7 +228,8 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 // TEST - Check Cookie JWT token and return something
 func GetUser(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Allow-Control-Allow-Origin", url)
+
+	w.Header().Set("Access-Control-Allow-Origin", url)
 
 	if r.Method == "OPTIONS" {
 		w.WriteHeader(http.StatusOK) // 200

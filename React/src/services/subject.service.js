@@ -1,7 +1,8 @@
 import axios from "axios";
 
 //const SUB_URL = "https://subject-4dcnj7fm6a-uc.a.run.app/api/getsubjects/"
-const SUB_URL = "http://localhost:5051"
+//const SUB_URL = "http://localhost:5051/api/getsubjects/"
+const SUB_URL = "http://34.134.136.241:5051/api/getsubjects/"
 
 axios.defaults.withCredentials = true
 let axiosConfig = {

@@ -24,7 +24,8 @@ import (
 var cred_file = "/eti-assignment-2-firebase-adminsdk-6r9lk-85fb98eda4.json"
 
 // var url = "https://react-app-4dcnj7fm6a-uc.a.run.app
-var url = "http://localhost:3000"
+//var url = "http://localhost:3000"
+var url = "http://104.154.110.27"
 
 type Payment struct {
 	Amount    int    `json:"amount" firestore:"Amount"`
@@ -78,7 +79,7 @@ func main() {
 // GET user info
 // UPDATE user in the db
 func GetPayment(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Allow-Control-Allow-Origin", url)
+	w.Header().Set("Access-Control-Allow-Origin", url)
 
 	// Init connection to firestore
 	ctx := context.Background()
