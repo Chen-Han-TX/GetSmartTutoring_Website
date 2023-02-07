@@ -71,4 +71,4 @@ Latest deployment of the application on [http://104.154.110.27:80 ](http://104.1
 
 # Credits
 - This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
-- More stuff
+- ChatGPT
