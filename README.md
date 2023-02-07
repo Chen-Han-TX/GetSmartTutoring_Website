@@ -80,7 +80,7 @@ Get Smart Tutoring was developed using the following tools:
 Latest deployment of the application on [http://104.154.110.27:80 ](http://104.154.110.27:80)
 
 # Step-by-step guideline on Deployment
-- [Follow this](Step-by-step Guideline.docx)
+- [Follow this document](https://github.com/Chen-Han-NP/eti_assignment2/blob/adc33dca8516c388196b69a3264706c46b66b99f/Step-by-step%20Guideline.docx)
 
 
 # Credits
