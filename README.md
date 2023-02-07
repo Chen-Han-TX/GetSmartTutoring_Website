@@ -4,6 +4,8 @@ Get Smart Tutoring, or _**GST**_ for short, is a tutoring service web applicatio
 
 # Architecture Diagram
 
+![Untitled_2023-02-07_06-00-46](https://user-images.githubusercontent.com/73156798/217161530-b8a4b3f1-0547-4ae8-8456-e4ff595b9bde.png)
+
 # Microservice Design Considerations
 ### 1. Authentication Management
 - User Registration
