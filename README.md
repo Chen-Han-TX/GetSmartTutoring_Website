@@ -64,10 +64,10 @@ Get Smart Tutoring was developed using the following tools:
 - **CORS Middleware Tool**: [Moesif Origin & CORS Changer](https://chrome.google.com/webstore/detail/moesif-origin-cors-change/digfbfaphojjndkpccljibejjbppifbc) (Used for testing)
 - **CORS Middleware Package**: [rs/cors - GO Package](https://github.com/rs/cors)
 - **Database**: [Firebase](https://firebase.google.com)
-- **Cloud deployment**: [Google Cloud](https://cloud.google.com)
+- **Cloud deployment**: [Google Cloud](https://cloud.google.com) using Kubernetes Engine
 
 # Deployment
-You can try out our latest deployment of the application on ()
+Latest deployment of the application on [http://104.154.110.27:80 ](http://104.154.110.27:80)
 
 # Credits
 - This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
