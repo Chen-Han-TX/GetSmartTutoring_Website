@@ -59,8 +59,12 @@ Get Smart Tutoring, or _**GST**_ for short, is a tutoring service web applicatio
 
 # Cloud Native Design, Architecture Rationale and Resiliency
 
-- Kubernetes replicas being set to 3; In the case that any of the pods go down, another one will be reinstated in place of the previous.
-- Cloud Scalability through Google Cloud, where auto-scaling is set to listen to CPU and memory usage to tune the number of resources being deployed.
+- Cloud Reliability by replicas being set to 3; In the case that any of the pods go down, another one will be reinstated in place of the previous.
+- Cloud Scalability through Google Cloud, where auto-scaling is set to listen to CPU usage to tune up/down the number of resources being deployed.
+- Cost-effectiveness that ties in with scalability, as resources are only instantiated when necessary and taken down when no longer necessary.
+- Agility through the use of rolling updates to replace old versions of the application with new ones with no disruption and no downtime to users.
+- Portability through ease of deployment on other cloud services (so on this occasion, we utilised Google Cloud).
+
 # Development Tools & Methods
 Get Smart Tutoring was developed using the following tools:
 - Developed using **Microservice architecture**, specifically for the Golang backend.
