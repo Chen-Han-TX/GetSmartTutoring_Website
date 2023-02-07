@@ -97,7 +97,7 @@ const RegisterStudent = () => {
     setSchool(school);
   };
 
-  const OnChangePSLE = (event, subject) => {
+  const OnChangePSLE = (subject) => {
     let updated = selectedSubjects
     updated["PSLE"] = subject
     setSelectedSubjects(selectedSubjects => ({
@@ -222,8 +222,8 @@ const onChangeAlevel = (subject) => {
               <div className="mb-3">
                   <label htmlFor="options">PSLE</label>
                   <DropdownMultiselect options={PSLEArray} name="pslesubjects" 
-                  handleOnChange={(event, selected) => {
-                    OnChangePSLE(event, selected);
+                  handleOnChange={(selected) => {
+                    OnChangePSLE(selected);
                   }}/>
               </div>
 
