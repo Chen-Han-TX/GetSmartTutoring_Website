@@ -2,9 +2,13 @@
 
 Get Smart Tutoring, or _**GST**_ for short, is a tutoring service web application that utilizes React and microservices, containerized and hosted on Google Cloud Kubernetes. 
 
-# Architecture Diagram
+# Architecture Diagram 
 
 ![Untitled_2023-02-07_06-00-46](https://user-images.githubusercontent.com/73156798/217161530-b8a4b3f1-0547-4ae8-8456-e4ff595b9bde.png)
+
+# Kubernetes Diagram
+
+![Assignment2 drawio (1)](https://user-images.githubusercontent.com/73086331/217268101-eff4e2e2-6992-48b6-bfe9-828c7da2f3f5.png)
 
 # Microservice Design Considerations
 ### 1. Authentication Management
@@ -71,6 +75,12 @@ Get Smart Tutoring was developed using the following tools:
 # Deployment
 Latest deployment of the application on [http://104.154.110.27:80 ](http://104.154.110.27:80)
 
+# Step-by-step guideline on Deployment
+- [Follow this](Step-by-step Guideline.docx)
+
+
 # Credits
 - This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
-- ChatGPT
+- For File uploads: [https://github.com/KunalN25/multiple-file-uploads/blob/main/src/App.js](https://github.com/KunalN25/multiple-file-uploads/blob/main/src/App.js)
+- Upload file on Storage: [https://www.makeuseof.com/upload-files-to-firebase-using-reactjs/](https://www.makeuseof.com/upload-files-to-firebase-using-reactjs/)
+
