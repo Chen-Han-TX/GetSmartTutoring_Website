@@ -61,7 +61,8 @@ Get Smart Tutoring was developed using the following tools:
 - **Back-end**: [Golang server](https://go.dev/) using [Mux Router](https://github.com/gorilla/mux)
 - **Front-end**: [React.js](https://reactjs.org/) & 
              [Bootstrap](https://getbootstrap.com/)
-- **CORS Middleware**: [Moesif Origin & CORS Changer](https://chrome.google.com/webstore/detail/moesif-origin-cors-change/digfbfaphojjndkpccljibejjbppifbc)
+- **CORS Middleware Tool**: [Moesif Origin & CORS Changer](https://chrome.google.com/webstore/detail/moesif-origin-cors-change/digfbfaphojjndkpccljibejjbppifbc) (Used for testing)
+- **CORS Middleware Package: [rs/cors - GO Package](https://github.com/rs/cors)
 - **Database**: [Firebase](https://firebase.google.com)
 - **Cloud deployment**: [Google Cloud](https://cloud.google.com)
 
